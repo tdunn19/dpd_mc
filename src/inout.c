@@ -39,7 +39,7 @@ void write_log (void)
 	printf("nsteps     \t\t\t%10ld\n",sys.nsteps);
 	printf("temp       \t\t\t%10.5lf\n",sys.temp);
 	printf("freq_sample\t\t\t%10ld\n",sys.freq_sample);
-	printf("calc_list  \t\t\t%10ld\n",sys.calc_list);
+	printf("calc_list  \t\t\t%d\n",sys.calc_list);
 	printf("iseed      \t\t\t%10ld\n",sys.iseed);
 	printf("\n\n");
 }
@@ -57,11 +57,11 @@ void final_stats (void)
 }
 
 void output (void)
-{	
+{
 	int i;
-	
+
 	printf("\nFinal averages\n\n");
-	
+
 	for (i=0; i<sys.n_stats;i++)
 	{
 		printf("%s \t %lf +/- %lf\n",sys.stats[i].name,sys.stats[i].sum,sys.stats[i].err);

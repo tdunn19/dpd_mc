@@ -26,10 +26,10 @@ void new_list (void)
 	for (i=0; i<sys.n_dpd; i++)
 	{
 		// Determine cell number of the particle
-		ix = (int) part[i].r.x / sys.r_c;
-		iy = (int) part[i].r.y / sys.r_c;
-		iz = (int) part[i].r.z / sys.r_c;
-		
+		ix = (int) part[i].r.x / sys.r_cell;
+		iy = (int) part[i].r.y / sys.r_cell;
+		iz = (int) part[i].r.z / sys.r_cell;
+
 		// Link list the head of chain of cell i,j,k
 		part[i].ll = sys.hoc[ix][iy][iz];
 
@@ -46,9 +46,9 @@ double calc_energy_list (int i)
 	E = 0;
 
 	// Determine cell number of particle i
-	ix = (int) part[i].r.x / sys.r_c;
-	iy = (int) part[i].r.y / sys.r_c;
-	iz = (int) part[i].r.z / sys.r_c;
+	ix = (int) part[i].r.x / sys.r_cell;
+	iy = (int) part[i].r.y / sys.r_cell;
+	iz = (int) part[i].r.z / sys.r_cell;
 
 	for (l=-1; l<=1; l++)
 	{

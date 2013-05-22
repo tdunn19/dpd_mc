@@ -39,19 +39,19 @@ main()
 {
 	int i;
 	double run_time;
-	clock_t begin, end;	
+	clock_t begin, end;
 
 	begin = clock();
 	initialize();
-		
+
 	srand(time(NULL));
+	if (sys.calc_list == 1) new_list();
 	for (i=0; i<=sys.nsteps; i++)
 	{
-		if (sys.calc_list == 1) new_list();
 		monte_carlo();
-		if (i % sys.freq_sample == 0) sample();		
+		if (i % sys.freq_sample == 0) sample();
 	}
-	
+
 	end = clock();
 	final_stats();
 	output();

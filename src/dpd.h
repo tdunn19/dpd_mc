@@ -22,9 +22,10 @@ typedef struct particle_type
 	int ll;
 	double E, Eo;
 	Vector r, ro;
+	// Ivector c, co;
 } Particle;
 
-typedef struct stats_type 
+typedef struct stats_type
 {
 	char *name;
 	int num;
@@ -37,13 +38,13 @@ typedef struct parameter_type
 	int 	calc_list,
 		***hoc;
 
-	long 	freq_sample, 
+	long 	freq_sample,
 		iseed,
 		nsteps,
 	        n_cell,
 		n_dpd,
 		n_stats;
-	
+
 	double 	a_ij,
 		density,
 		length,

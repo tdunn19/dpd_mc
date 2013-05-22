@@ -22,13 +22,15 @@ void init_param (void)
 
 	sys.n_dpd = sys.density * sys.volume;
 	sys.length = pow(sys.volume,1.0/3.0);
-	
+
 	if (sys.calc_list == 1)
 	{
+		// Determine cell size and the number of cells
 		fact = (int) (sys.length / sys.r_c + 1e-9);
 		sys.r_cell = (double) sys.length / fact;
-		sys.n_cell = (long) (sys.length / sys.r_cell + 1e-9); 
+		sys.n_cell = (long) (sys.length / sys.r_cell + 1e-9);
 
+		// Allocate memory for the head of chain array
 		sys.hoc = (int ***) malloc((sys.n_cell+1)*sizeof(int **));
 		for (i=0; i<sys.n_cell; i++)
 		{
@@ -51,7 +53,7 @@ void init_stats (void)
 void setup_coords (void)
 {
 	int i;
-	
+
 	part = (Particle *) calloc(sys.n_dpd,sizeof(Particle));
 
 	for (i=0; i<sys.n_dpd; i++)

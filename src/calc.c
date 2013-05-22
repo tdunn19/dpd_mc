@@ -148,3 +148,48 @@ double total_energy (void)
 
 	return E;
 }
+
+
+// Maybe come back to this later if efficiency is an issue.
+// Seems overly complicated right now. (May 21st, 2013)
+/*
+double total_energy_list (int i)
+{
+	// This will calculate new energies of the system after a MC move
+
+	int ix,iy,iz,jx,jy,jz,j,l,m,n;
+
+	// Determine cell number of particle i.
+	ix = (int) part[i].r.x / sys.r_c;
+	iy = (int) part[i].r.y / sys.r_c;
+	iz = (int) part[i].r.z / sys.r_c;
+
+	// Recalculate energies for the cells within two cell lengths to
+	// account for the particle moving into a new cell.
+	for (l=-2; l<=2; l++)
+	{
+		for (m=-2; m<=2; m++)
+		{
+			for (n=-2; n<=2; n++)
+			{
+				jx = mod(ix+l,sys.n_cell);
+				jy = mod(iy+m,sys.n_cell);
+				jz = mod(iz+n,sys.n_cell);
+
+				// First particle in the chain:
+				j = sys.hoc[jx][jy][jz];
+
+				while (j!=-1)
+				{
+					if (i!=j)
+					{
+
+					}
+				}
+
+				j
+			}
+		}
+	}
+}
+*/
