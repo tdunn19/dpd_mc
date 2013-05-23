@@ -23,10 +23,10 @@ Changelog
 ---------
 
 Version 1.1 (May 23, 2013)
-	- some efficiency changes:
-		- a new cell list will only be generated when a particles moves into a new cell
-		- new energies will only be calculated for 
+*	some efficiency changes:
+*	a new cell list will only be generated when a particles moves into a new cell
+*	new energies will only be calculated for 
 
-Versoin 1.0 (May 20, 2013)
-
+Version 1.0 (May 20, 2013)
+*	employed cell list method of calculation
 
