@@ -25,7 +25,7 @@ Changelog
 Version 1.1 (May 23, 2013)
 *	some efficiency changes:
 *	a new cell list will only be generated when a particles moves into a new cell
-*	new energies will only be calculated for 
+*	new energies will only be calculated for particles in neighboring (2 neighbors deep) cells of the randomly chosen particle 
 
 Version 1.0 (May 20, 2013)
 *	employed cell list method of calculation
