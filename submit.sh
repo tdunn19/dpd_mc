@@ -26,8 +26,6 @@ sed -i 's/.*density.*/'$density'\t\t\tdensity/g' dpd.inp
 sed -i 's/.*volume.*/'$volume'\t\t\tvolume/g' dpd.inp
 sed -i 's/.*nsteps.*/'$nsteps'\t\t\tnsteps/g' dpd.inp
 
-rm run.sh run.inp
-
 # Create directories if they don't already exist
 mkdir "$dir"/results/
 mkdir "$dir"/results/d"$density"
