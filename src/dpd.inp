@@ -5,7 +5,7 @@
 25.0	    a_mm
 15.0        a_ms
 25.0        a_ss
-1000        nsteps
+10000        nsteps
 1.0         temp
 100         freq_sample
 1           calc_list
