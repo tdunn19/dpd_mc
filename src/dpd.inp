@@ -1,10 +1,12 @@
 10          n_mon
-5	    density
+1           density
 1000	    volume
 1.0         r_c
-25.0	    a_ij
+25.0	    a_mm
+15.0        a_ms
+25.0        a_ss
 1000        nsteps
 1.0         temp
 100         freq_sample
-1	    calc_list
+1           calc_list
 822555134   iseed
