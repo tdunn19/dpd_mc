@@ -72,5 +72,8 @@ void setup_coords(void) {
         } else {
             part_dpd[i].E = calc_energy(i);
         }
+        part_dpd[i].Eo = part_dpd[i].E;
     }
+
+    sys.energy = total_energy();
 }

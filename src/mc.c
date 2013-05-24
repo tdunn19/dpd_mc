@@ -14,7 +14,7 @@ void monte_carlo(void) {
     i = rand() % sys.n_dpd;
 
     // Store old energy
-    Eo = total_energy();
+    Eo = sys.energy;
     // Displace particle i a random amount
     random_move(i);
     // Calculate new energy
@@ -31,6 +31,8 @@ void monte_carlo(void) {
         }
     } else {
         // Accept the movement
+        sys.energy = En;
+
         if (sys.calc_list == 1) {
             // Check for new head of chain
             ix = (int) part_dpd[i].r.x / sys.r_cell;
@@ -97,7 +99,9 @@ void random_move(int i) {
                     j = sys.hoc[jx][jy][jz];
 
                     while (j != -1) {
+                        part_dpd[j].Eo = part_dpd[j].E;
                         part_dpd[j].E = calc_energy_list(j);
+
                         // Next particle in the linked list
                         j = part_dpd[j].ll;
                     }
@@ -107,6 +111,7 @@ void random_move(int i) {
     } else {
         // Brute force calculation of energies
         for (j = 0; j < sys.n_dpd; j++) {
+            part_dpd[j].Eo = part_dpd[j].E;
             part_dpd[j].E = calc_energy(j);
         }
     }

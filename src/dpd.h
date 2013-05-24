@@ -41,6 +41,7 @@ typedef struct parameter_type {
     double
         a_ij,
         density,
+        energy,
         length,
         r_c,
         r_cell,

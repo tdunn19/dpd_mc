@@ -46,7 +46,6 @@ void sample(void) {
     P.now /= 3*sys.volume;
     P.now += sys.density*sys.temp;
 
-
     for (i = 0; i < sys.n_stats; i++) {
         sys.stats[i].sum += sys.stats[i].now;
         sys.stats[i].sumsq += sys.stats[i].now*sys.stats[i].now;
