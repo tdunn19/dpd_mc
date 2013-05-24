@@ -26,6 +26,7 @@ sed -i 's/.*density.*/'$density'\t\t\tdensity/g' dpd.inp
 sed -i 's/.*volume.*/'$volume'\t\t\tvolume/g' dpd.inp
 sed -i 's/.*nsteps.*/'$nsteps'\t\t\tnsteps/g' dpd.inp
 
+rm run.sh run.inp
 
 # Create directories if they don't already exist
 mkdir "$dir"/results/
@@ -40,7 +41,7 @@ u=1
 while [ $u -lt $nfiles ] 
 do
 
-	v=$((u+0)) # change
+	v=$((u+1)) # change
 
 	loop='{'$u'..'$v'}; do'
 
@@ -55,10 +56,12 @@ do
 	sed -i "s/\(part *= *\).*/\1$w/" run.sh
 	sed -i "s/\(for u in *  *\).*/\1$loop/" run.sh
 
-	qsub -l h_rt=1:00:00 run.sh # change
+	qsub -l h_rt=48:00:00 run.sh # change
 
 	echo 'd'$density'-'$w' from '$u' to '$v''
 	w=`expr $w + 1`
 	u=`expr $v + 1`
 done
 
+cd "$dir"/src
+rm run.sh run.inp

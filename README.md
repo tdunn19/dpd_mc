@@ -19,6 +19,8 @@ To compile and run:
 	make opt3
 	./dpd.run
 
+Edit src/dpd.inp to change parameters.
+
 Changelog
 ---------
 
