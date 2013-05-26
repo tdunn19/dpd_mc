@@ -76,21 +76,21 @@ double energy_c(Vector dr) {
 
   // Periodic boundary conditions
   if (dr.x > sys.length/2) {
-    dr.x -= sys.length/2;
+    dr.x -= sys.length;
   } else if (dr.x < -sys.length/2) {
-    dr.x += sys.length/2;
+    dr.x += sys.length;
   }
 
   if (dr.y > sys.length/2) {
-    dr.y -= sys.length/2;
+    dr.y -= sys.length;
   } else if (dr.y < -sys.length/2) {
-    dr.y += sys.length/2;
+    dr.y += sys.length;
   }
 
   if (dr.z > sys.length/2) {
-    dr.z -= sys.length/2;
+    dr.z -= sys.length;
   } else if (dr.z < -sys.length/2) {
-    dr.z += sys.length/2;
+    dr.z += sys.length;
   }
 
   r_ij = vmag(dr);
@@ -110,11 +110,31 @@ double energy_fene(i, j) {
   Vector dr;
 
   dr = vdist(part_mon[i].r, part_mon[j].r);
+
+  // Periodic boundary conditions
+  if (dr.x > sys.length/2) {
+    dr.x -= sys.length;
+  } else if (dr.x < -sys.length/2) {
+    dr.x += sys.length;
+  }
+
+  if (dr.y > sys.length/2) {
+    dr.y -= sys.length;
+  } else if (dr.y < -sys.length/2) {
+    dr.y += sys.length;
+  }
+
+  if (dr.z > sys.length/2) {
+    dr.z -= sys.length;
+  } else if (dr.z < -sys.length/2) {
+    dr.z += sys.length;
+  }
+
   r_ij = vmag(dr);
 
   if (r_ij <= sys.r_max) {
     r2 = sys.r_0 * sys.r_0;
-    E = r2 * log(1 - (r_ij - sys.r_eq)*(r_ij - sys.r_eq)/r2);
+    E = -1.0 * r2 * log(1 - (r_ij - sys.r_eq)*(r_ij - sys.r_eq)/r2);
     return E;
   }
   else {

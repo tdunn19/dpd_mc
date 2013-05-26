@@ -23,6 +23,23 @@ Edit src/dpd.inp to change parameters.
 
 Changelog
 ---------
+
+Version 2.1 (May 25, 2013)
+*   some bug fixes and new functionality
+*   rewrote the criteria for calculating new energies after a particle moves
+    * check for new cell
+    * find dix, diy, diz (difference between cell i and j)
+    * using these, calculate energies for old neighboring cells
+    * old method: 5*5*5 = 125 cells, every time
+    * new method: 3*3*3 = 27 cells, if particle stays in the same cell
+    *   = 27 + 9 cells, if one cell dimension changes (e.g. ix != ixo)
+    *   = 27 + 9 + 6 cells, if two cell dimensions change (e.g. ix, iy != ixo, iyo)
+    *   = 27 + 9 + 6 + 4 cells, if three cell dimensions change (e.g. ix, iy, iz != ixo, iyo, izo)
+*   new function accept_move: returns 1 (true) if MC move is accepted, or 0 (false) if it is rejected
+*   new function check_cell: returns 1 (true) if a particle has entered a new cell, 0 (false) otherwise
+*   periodic boundary conditions for vector dr were incorrectly incrementing/decrementing by sys.length/2 instead of sys.length
+*   monomers were not being initialized in the middle of the x-y plane
+
 Version 2.0 (May 24, 2013)
 *	the polymer has been added to the system
 *   note: brute force method currently does not work with polymer

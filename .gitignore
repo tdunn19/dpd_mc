@@ -19,3 +19,7 @@
 
 # Data files
 *.dat
+
+# Test files
+test.sh
+test.dat

@@ -15,9 +15,11 @@ System sys;
 
 /* Global functions */
 
+int     accept_move(void);
 double  calc_energy(int i);
 double  calc_energy_dpd(int i);
 double  calc_energy_mon(int i);
+int     check_cell(Vector, Vector);
 double  energy_c(Vector);
 double  energy_fene(int i, int j);
 void    initialize(void);

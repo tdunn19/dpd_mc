@@ -68,9 +68,11 @@ extern System sys;
 
 /* Global functions */
 
+extern int     accept_move(void);
 extern double  calc_energy(int i);
 extern double  calc_energy_dpd(int i);
 extern double  calc_energy_mon(int i);
+extern int     check_cell(Vector, Vector);
 extern double  energy_c(Vector);
 extern double  energy_fene(int i, int j);;
 extern void    initialize(void);

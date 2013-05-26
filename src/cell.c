@@ -33,6 +33,26 @@ void new_list(void) {
   }
 }
 
+int check_cell(Vector r, Vector ro) {
+  // Check for a new head of chain
+  int ix, iy, iz, ixo, iyo, izo;
+
+  ix = (int) r.x / sys.r_cell;
+  iy = (int) r.y / sys.r_cell;
+  iz = (int) r.z / sys.r_cell;
+
+  ixo = (int) ro.x / sys.r_cell;
+  iyo = (int) ro.y / sys.r_cell;
+  izo = (int) ro.z / sys.r_cell;
+
+  if (sys.hoc[ix][iy][iz] != sys.hoc[ixo][iyo][izo]) {
+    // The cell has changed
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
 double calc_energy_dpd(int i) {
   int ix, iy, iz, jx, jy, jz, j, l, m, n;
   double E_ss = 0, E_ms = 0;
