@@ -32,13 +32,13 @@ Version 2.2 (May 27, 2013)
 *   added some new sample quantities: energy, re2, re2x, re2y, re2z
     * new functions: calc_pressure, calc_re, calc_bond_length
     * calc_pressure was modified to account for polymer
-*   new function periodic_bc(): takes in dr vector and adjusts it based on periodic boundary conditions
-*   new module energy.c: functions from calc.c and cell.c which related to energy moved here
+*   new function periodic_bc: takes in dr vector and adjusts it based on periodic boundary conditions
+*   new module energy.c: functions from calc.c and cell.c which related to energy were moved here
 *   new function calc_brute_force: brute force calculation of all monomer and dpd particle energies (deleted old calc_energy)
 *   new function check_bond(i): checks for breakage in the bonds on either side of monomer i and adjust sys.bond_break accordingly
     * removed this same functionality from energy_fene, as it is now redundant
 *   fixed a bug: conservative soft pair potentials were missing a factor of 1/2
-*   renamed output to print_stats, a more decriptive name
+*   renamed output to print_stats, a more descriptive name
 *   adjusted write_mon to include new monitored quantities
 *   fixed a bug: under monte_carlo, if a move was rejected, only one type of particle energy was reset (i.e. just dpd or just mon)
 *   still to do: change calc_re to take into account periodic boundary conditions (might be tricky)
