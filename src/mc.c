@@ -9,8 +9,6 @@
 void monte_carlo(void) {
   int i, j, ix, iy, iz, ixo, iyo, izo;
 
-  sys.bond_break = 0;
-
   // Choose a random particle
   i = rand() % (sys.n_dpd + sys.n_mon);
 
@@ -27,6 +25,10 @@ void monte_carlo(void) {
       for (j = 0; j < sys.n_mon; j++) {
         part_mon[j].E = part_mon[j].Eo;
       }
+
+      for (j = 0; j < sys.n_dpd; j++) {
+        part_dpd[j].E = part_dpd[j].Eo;
+      }
     }
   } else {
     // A DPD particle was chosen
@@ -39,6 +41,10 @@ void monte_carlo(void) {
 
       for (j = 0; j < sys.n_dpd; j++) {
         part_dpd[j].E = part_dpd[j].Eo;
+      }
+
+      for (j = 0; j < sys.n_mon; j++) {
+        part_mon[j].E = part_mon[j].Eo;
       }
     } else {
       // Generate a new list if the particle changed cells
@@ -80,7 +86,6 @@ void random_move_dpd(int i) {
     part_dpd[i].r.z += sys.length;
   }
 
-  // Calculate new energies of particles within two cells of particle i.
   if (sys.calc_list) {
     for (j = 0; j < sys.n_mon; j++) {
       part_mon[j].Eo = part_mon[j].E;
@@ -186,11 +191,7 @@ void random_move_dpd(int i) {
       }
     }
   } else {
-    // Brute force calculation of energies
-    for (j = 0; j < sys.n_dpd; j++) {
-      part_dpd[j].Eo = part_dpd[j].E;
-      part_dpd[j].E = calc_energy_dpd(j);
-    }
+    calc_energy_brute();
   }
 }
 
@@ -225,126 +226,115 @@ void random_move_mon(int i) {
     part_mon[i].r.z += sys.length;
   }
 
-  if (sys.calc_list) {
-    for (j = 0; j < sys.n_mon && !(sys.bond_break); j++) {
+  // Check for bond breaks
+  check_bond(i);
+
+  if (sys.calc_list && !sys.bond_break) {
+    for (j = 0; j < sys.n_mon; j++) {
       part_mon[j].Eo = part_mon[j].E;
       part_mon[j].E = calc_energy_mon(j);
     }
-    // In the event of a bond breaking, immediately stop
-    // calculations and reject the move
 
-    if (!sys.bond_break) {
-      // Determine new energies for nearest neighbor cells
-      ix = (int) part_mon[i].r.x / sys.r_cell;
-      iy = (int) part_mon[i].r.y / sys.r_cell;
-      iz = (int) part_mon[i].r.z / sys.r_cell;
+    // Determine new energies for nearest neighbor cells
+    ix = (int) part_mon[i].r.x / sys.r_cell;
+    iy = (int) part_mon[i].r.y / sys.r_cell;
+    iz = (int) part_mon[i].r.z / sys.r_cell;
 
-      for (l = -1; l <= 1; l++) {
+    for (l = -1; l <= 1; l++) {
+      for (m = -1; m <= 1; m++) {
+        for (n = -1; n <= 1; n++) {
+          // Determine the cell
+          jx = mod(ix+l, sys.n_cell);
+          jy = mod(iy+m, sys.n_cell);
+          jz = mod(iz+n, sys.n_cell);
+
+          j = sys.hoc[jx][jy][jz];
+
+          while (j != -1) {
+            part_dpd[j].Eo = part_dpd[j].E;
+            part_dpd[j].E = calc_energy_dpd(j);
+
+            // Next particle in the linked list
+            j = part_dpd[j].ll;
+          }
+        }
+      }
+    }
+
+    if (check_cell(part_mon[i].r, part_mon[i].ro)) {
+      // The particle entered a new cell
+      // Must consider the neighbors of the old cell
+      ixo = (int) part_mon[i].ro.x / sys.r_cell;
+      iyo = (int) part_mon[i].ro.y / sys.r_cell;
+      izo = (int) part_mon[i].ro.z / sys.r_cell;
+
+      dix = ix - ixo;
+      diy = iy - iyo;
+      diz = iz - izo;
+
+      if (dix != 0) {
+        jx = mod(ixo - dix, sys.n_cell);
+
         for (m = -1; m <= 1; m++) {
           for (n = -1; n <= 1; n++) {
-            // Determine the cell
-            jx = mod(ix+l, sys.n_cell);
-            jy = mod(iy+m, sys.n_cell);
-            jz = mod(iz+n, sys.n_cell);
+            jy = mod(iyo+m, sys.n_cell);
+            jz = mod(izo+n, sys.n_cell);
 
             j = sys.hoc[jx][jy][jz];
 
             while (j != -1) {
               part_dpd[j].Eo = part_dpd[j].E;
               part_dpd[j].E = calc_energy_dpd(j);
+              j = part_dpd[j].ll;
+            }
+            // To account for overcounting, set HOC to -1
+            sys.hoc[jx][jy][jz] = -1;
+          }
+        }
+      }
 
-              // Next particle in the linked list
+      if (diy != 0) {
+        jy = mod(iyo - diy, sys.n_cell);
+
+        for (l = -1; l <= 1; l++) {
+          for (n = -1; n <= 1; n++) {
+            jx = mod(ixo+l, sys.n_cell);
+            jz = mod(izo+n, sys.n_cell);
+
+            j = sys.hoc[jx][jy][jz];
+
+            while (j != -1) {
+              part_dpd[j].Eo = part_dpd[j].E;
+              part_dpd[j].E = calc_energy_dpd(j);
+              j = part_dpd[j].ll;
+            }
+            // To account for overcounting, set HOC to -1
+            sys.hoc[jx][jy][jz] = -1;
+          }
+        }
+      }
+
+      if (diz != 0) {
+        jz = mod(izo - diz, sys.n_cell);
+
+        for (l = -1; l <= 1; l++) {
+          for (m = -1; m <= 1; m++) {
+            jx = mod(ixo+l, sys.n_cell);
+            jy = mod(iyo+m, sys.n_cell);
+
+            j = sys.hoc[jx][jy][jz];
+
+            while (j != -1) {
+              part_dpd[j].Eo = part_dpd[j].E;
+              part_dpd[j].E = calc_energy_dpd(j);
               j = part_dpd[j].ll;
             }
           }
         }
       }
-
-      if (check_cell(part_mon[i].r, part_mon[i].ro)) {
-        // The particle entered a new cell
-        // Must consider the neighbors of the old cell
-        ixo = (int) part_mon[i].ro.x / sys.r_cell;
-        iyo = (int) part_mon[i].ro.y / sys.r_cell;
-        izo = (int) part_mon[i].ro.z / sys.r_cell;
-
-        dix = ix - ixo;
-        diy = iy - iyo;
-        diz = iz - izo;
-
-        if (dix != 0) {
-          jx = mod(ixo - dix, sys.n_cell);
-
-          for (m = -1; m <= 1; m++) {
-            for (n = -1; n <= 1; n++) {
-              jy = mod(iyo+m, sys.n_cell);
-              jz = mod(izo+n, sys.n_cell);
-
-              j = sys.hoc[jx][jy][jz];
-
-              while (j != -1) {
-                part_dpd[j].Eo = part_dpd[j].E;
-                part_dpd[j].E = calc_energy_dpd(j);
-                j = part_dpd[j].ll;
-              }
-              // To account for overcounting, set HOC to -1
-              sys.hoc[jx][jy][jz] = -1;
-            }
-          }
-        }
-
-        if (diy != 0) {
-          jy = mod(iyo - diy, sys.n_cell);
-
-          for (l = -1; l <= 1; l++) {
-            for (n = -1; n <= 1; n++) {
-              jx = mod(ixo+l, sys.n_cell);
-              jz = mod(izo+n, sys.n_cell);
-
-              j = sys.hoc[jx][jy][jz];
-
-              while (j != -1) {
-                part_dpd[j].Eo = part_dpd[j].E;
-                part_dpd[j].E = calc_energy_dpd(j);
-                j = part_dpd[j].ll;
-              }
-              // To account for overcounting, set HOC to -1
-              sys.hoc[jx][jy][jz] = -1;
-            }
-          }
-        }
-
-        if (diz != 0) {
-          jz = mod(izo - diz, sys.n_cell);
-
-          for (l = -1; l <= 1; l++) {
-            for (m = -1; m <= 1; m++) {
-              jx = mod(ixo+l, sys.n_cell);
-              jy = mod(iyo+m, sys.n_cell);
-
-              j = sys.hoc[jx][jy][jz];
-
-              while (j != -1) {
-                part_dpd[j].Eo = part_dpd[j].E;
-                part_dpd[j].E = calc_energy_dpd(j);
-                j = part_dpd[j].ll;
-              }
-            }
-          }
-        }
-      }
     }
-  } else {
-    // Brute force calculation of energies
-    for (j = 0; j < sys.n_mon; j++) {
-      part_mon[j].Eo = part_mon[j].E;
-      part_mon[j].E = calc_energy_mon(j);
-    }
-
-    for (j = 0; j < sys.n_dpd; j++) {
-      part_mon[j].Eo = part_dpd[j].E;
-      part_mon[j].E = calc_energy_dpd(j);
-    }
-
+  } else if (!sys.bond_break) {
+    calc_energy_brute();
   }
 }
 

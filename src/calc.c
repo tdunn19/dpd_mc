@@ -5,34 +5,44 @@
 #include "dpd.h"
 
 void sample(void) {
-  int i, j;
-  double r_ij;
-  Vector dr;
+  int i;
 
   P.now = 0;
+  BL.now = 0;
 
-  for (i = 0; i < sys.n_dpd; i++) {
+  calc_pressure();
+  calc_re();
+  calc_bond_length();
+
+  for (i = 0; i < sys.n_stats; i++) {
+    sys.stats[i].sum += sys.stats[i].now;
+    sys.stats[i].sumsq += sys.stats[i].now*sys.stats[i].now;
+    sys.stats[i].num += 1;
+  }
+}
+
+void monitor(void) {
+  sys.mon.energy[sys.monitor_step] = sys.energy;
+  sys.mon.re2[sys.monitor_step] = RE2.now;
+  sys.mon.rex[sys.monitor_step] = sqrt(RE2x.now);
+  sys.mon.rey[sys.monitor_step] = sqrt(RE2y.now);
+  sys.mon.rez[sys.monitor_step] = sqrt(RE2z.now);
+  sys.mon.bond_length[sys.monitor_step] = BL.now;
+
+  sys.monitor_step += 1;
+}
+
+void calc_pressure(void) {
+  // Calculate the pressure using the truncated virial expansion
+  int i, j;
+  double r_ij, fact;
+  Vector dr, drnew;
+
+  // Contribution from solvent-solvent forces
+  for (i = 0; i < sys.n_dpd-1; i++) {
     for (j = i+1; j < sys.n_dpd; j++) {
       dr = vdist(part_dpd[i].r, part_dpd[j].r);
-
-      // Employ periodic boundary conditions
-      if (dr.x > sys.length/2) {
-        dr.x -= sys.length;
-      } else if (dr.x < -sys.length/2) {
-        dr.x += sys.length;
-      }
-
-      if (dr.y > sys.length/2) {
-        dr.y -= sys.length;
-      } else if (dr.y < -sys.length/2) {
-        dr.y += sys.length;
-      }
-
-      if (dr.z > sys.length/2) {
-        dr.z -= sys.length;
-      } else if (dr.z < -sys.length/2) {
-        dr.z += sys.length;
-      }
+      periodic_bc(dr);
 
       r_ij = vmag(dr);
 
@@ -43,118 +53,100 @@ void sample(void) {
     }
   }
 
-  P.now /= 3*sys.volume;
-  P.now += sys.density*sys.temp;
+  for (i = 0; i < sys.n_mon; i++) {
+    // Contribution from monomer-monomer forces
+    for (j = i+1; j < sys.n_mon; j++) {
+      dr = vdist(part_mon[i].r, part_mon[j].r);
+      periodic_bc(dr);
+      r_ij = vmag(dr);
 
-  for (i = 0; i < sys.n_stats; i++) {
-    sys.stats[i].sum += sys.stats[i].now;
-    sys.stats[i].sumsq += sys.stats[i].now*sys.stats[i].now;
-    sys.stats[i].num += 1;
-  }
-}
+      // Conservative force
+      if (r_ij < sys.r_c) {
+        P.now += sys.a_mm*r_ij*(1-r_ij);
+      }
 
-double calc_energy(int i) {
-  int j;
-  double E, r_ij;
-  Vector dr;
-  E = 0;
+      // FENE spring force
+      if (j == i+1) {
+        fact = 1.0 - (r_ij - sys.r_eq) / sys.r_0;
+        P.now += -sys.k_fene*r_ij*(r_ij-sys.r_eq) / fact;
 
-  for (j = 0; j < sys.n_dpd; j++) {
-    if (j != i) {
-      dr = vdist(part_dpd[i].r, part_dpd[j].r);
-      E += energy_c(dr);
+        // There shouldn't be a case where r_ij > r_max because of bond breaks
+        if (r_ij > sys.r_max) {
+          printf("\nError: r_ij > r_max at monitor step %d\n", sys.monitor_step);
+        }
+      }
+    }
+
+    // Contribution from monomer-solvent forces
+    for (j = 0; j < sys.n_dpd; j++) {
+      dr = vdist(part_mon[i].r, part_dpd[j].r);
+      periodic_bc(dr);
+
+      r_ij = vmag(dr);
+
+      if (r_ij < sys.r_c) {
+        P.now += sys.a_ms*r_ij*(1-r_ij);
+      }
     }
   }
 
-  E *= sys.a_ss/2;
-
-  return E;
+  P.now /= 3*sys.volume;
+  P.now += sys.density*sys.temp;
 }
 
-double energy_c(Vector dr) {
-  double r_ij, E_ij;
-
-  // Periodic boundary conditions
-  if (dr.x > sys.length/2) {
-    dr.x -= sys.length;
-  } else if (dr.x < -sys.length/2) {
-    dr.x += sys.length;
-  }
-
-  if (dr.y > sys.length/2) {
-    dr.y -= sys.length;
-  } else if (dr.y < -sys.length/2) {
-    dr.y += sys.length;
-  }
-
-  if (dr.z > sys.length/2) {
-    dr.z -= sys.length;
-  } else if (dr.z < -sys.length/2) {
-    dr.z += sys.length;
-  }
-
-  r_ij = vmag(dr);
-
-  // Soft repulsive force
-  if (r_ij < sys.r_c) {
-    E_ij = (1 - r_ij/sys.r_c) * (1 - r_ij/sys.r_c);
-  } else {
-    E_ij = 0;
-  }
-
-  return E_ij;
-}
-
-double energy_fene(i, j) {
-  double E, r_ij, r2;
+void calc_re(void) {
+  double rex, rey, rez;
   Vector dr;
 
-  dr = vdist(part_mon[i].r, part_mon[j].r);
+  dr = vdist(part_mon[sys.n_mon-1].r, part_mon[0].r);
+  rex = dr.x;
+  rey = dr.y;
+  rez = dr.z;
 
-  // Periodic boundary conditions
-  if (dr.x > sys.length/2) {
-    dr.x -= sys.length;
-  } else if (dr.x < -sys.length/2) {
-    dr.x += sys.length;
-  }
-
-  if (dr.y > sys.length/2) {
-    dr.y -= sys.length;
-  } else if (dr.y < -sys.length/2) {
-    dr.y += sys.length;
-  }
-
-  if (dr.z > sys.length/2) {
-    dr.z -= sys.length;
-  } else if (dr.z < -sys.length/2) {
-    dr.z += sys.length;
-  }
-
-  r_ij = vmag(dr);
-
-  if (r_ij <= sys.r_max) {
-    r2 = sys.r_0 * sys.r_0;
-    E = -1.0 * r2 * log(1 - (r_ij - sys.r_eq)*(r_ij - sys.r_eq)/r2);
-    return E;
-  }
-  else {
-    sys.bond_break = 1;
-    return 0;
-  }
+  RE2x.now = rex*rex;
+  RE2y.now = rey*rey;
+  RE2z.now = rez*rez;
+  RE2.now = RE2x.now + RE2y.now + RE2z.now;
 }
 
-double total_energy(void) {
+void calc_bond_length(void) {
   int i;
-  double E;
-  E = 0;
+  Vector dr;
 
-  for (i = 0; i < sys.n_dpd; i++) {
-    E += part_dpd[i].E;
+  for (i = 0; i < sys.n_mon-2; i++) {
+     dr = vdist(part_mon[i].r, part_mon[i+1].r);
+     BL.now += vmag(dr);
   }
 
-  for (i = 0; i < sys.n_mon; i++) {
-    E += part_mon[i].E;
+  // Divide by number of bonds to get an average
+  BL.now /= (sys.n_mon - 1);
+}
+
+void check_bond(int i) {
+  double r_ij;
+  Vector dr;
+
+  sys.bond_break = 0;
+
+  // If not the first monomer in the chain
+  if (i != 0) {
+    dr = vdist(part_mon[i].r, part_mon[i-1].r);
+    periodic_bc(dr);
+    r_ij = vmag(dr);
+
+    if (r_ij > sys.r_max) {
+      sys.bond_break = 1;
+    }
   }
 
-  return E;
+  // If not the last monomer in the chain
+  if (i != (sys.n_mon - 1)) {
+    dr = vdist(part_mon[i].r, part_mon[i+1].r);
+    periodic_bc(dr);
+    r_ij = vmag(dr);
+
+    if (r_ij > sys.r_max) {
+      sys.bond_break = 1;
+    }
+  }
 }

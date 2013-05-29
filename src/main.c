@@ -16,9 +16,13 @@ System sys;
 /* Global functions */
 
 int     accept_move(void);
-double  calc_energy(int i);
+void    calc_bond_length(void);
+void    calc_energy_brute(void);
 double  calc_energy_dpd(int i);
 double  calc_energy_mon(int i);
+void    calc_pressure(void);
+void    calc_re(void);
+void    check_bond(int i);
 int     check_cell(Vector, Vector);
 double  energy_c(Vector);
 double  energy_fene(int i, int j);
@@ -27,9 +31,11 @@ void    init_param(void);
 void    init_stats(void);
 void    input(void);
 int     mod(int, int);
+void    monitor_mem(void);
 void    monte_carlo(void);
 void    new_list(void);
-void    output(void);
+void    period_bc(Vector);
+void    print_stats(void);
 double  ran3(void);
 void    random_move_dpd(int i);
 void    random_move_mon(int i);
@@ -48,20 +54,20 @@ main() {
 
   begin = clock();
   initialize();
-
   srand(time(NULL));
   if (sys.calc_list == 1) new_list();
+
   for (i = 0; i <= sys.nsteps; i++) {
     monte_carlo();
     if (i % sys.freq_sample == 0) sample();
+    if (i % sys.freq_monitor == 0) monitor();
   }
 
   end = clock();
   final_stats();
-  output();
+  print_stats();
   write_mon();
 
   run_time = (double) (end - begin) / CLOCKS_PER_SEC;
   printf("\nRun time of %lf seconds.\n\n", run_time);
 }
-

@@ -53,107 +53,22 @@ int check_cell(Vector r, Vector ro) {
   }
 }
 
-double calc_energy_dpd(int i) {
-  int ix, iy, iz, jx, jy, jz, j, l, m, n;
-  double E_ss = 0, E_ms = 0;
-  Vector dr;
-
-  // Determine cell number of particle i
-  ix = (int) part_dpd[i].r.x / sys.r_cell;
-  iy = (int) part_dpd[i].r.y / sys.r_cell;
-  iz = (int) part_dpd[i].r.z / sys.r_cell;
-
-  // Solvent-solvent interaction
-  for (l = -1; l <= 1; l++) {
-    for (m = -1; m <= 1; m++) {
-      for (n = -1; n <= 1; n++) {
-        // Determine nearest neighbor cell
-        jx = mod(ix+l, sys.n_cell);
-        jy = mod(iy+m, sys.n_cell);
-        jz = mod(iz+n, sys.n_cell);
-
-        // First particle in the chain
-        j = sys.hoc[jx][jy][jz];
-
-        while (j != -1) {
-          if (i != j) {
-            dr = vdist(part_dpd[i].r, part_dpd[j].r);
-            E_ss += energy_c(dr);
-          }
-          // Next particle in the chain
-          j = part_dpd[j].ll;
-        }
-      }
-    }
-  }
-  E_ss *= sys.a_ss;
-
-  // Solvent-monomer interaction
-  for (j = 0; j < sys.n_mon; j++) {
-    dr = vdist(part_dpd[i].r, part_mon[j].r);
-    E_ms += energy_c(dr);
-  }
-  E_ms *= sys.a_ms;
-
-  return E_ss + E_ms;
-}
-
-
-double calc_energy_mon(int i) {
-  int ix, iy, iz, jx, jy, jz, j, l, m, n;
-  double E_ms = 0, E_mm = 0, E_fene = 0;;
-  Vector dr;
-
-  // If not the first monomer in the chain
-  if (i != 0) {
-    E_fene += energy_fene(i, i-1);
-  }
-  // If not the last monomer in the chain
-  if (i != (sys.n_mon -1)) {
-    E_fene += energy_fene(i, i+1);
-  }
-  E_fene *= sys.k_fene / 2;
-
-  // Check for bond break
-  if (!sys.bond_break) {
-    // Determine cell number of monomer i
-    ix = (int) part_mon[i].r.x / sys.r_cell;
-    iy = (int) part_mon[i].r.y / sys.r_cell;
-    iz = (int) part_mon[i].r.z / sys.r_cell;
-
-    // Monomer-solvent interaction
-    for (l = -1; l <= 1; l++) {
-      for (m = -1; m <= 1; m++) {
-        for (n = -1; n <= 1; n++) {
-          // Determine nearest neighbor cell
-          jx = mod(ix+l, sys.n_cell);
-          jy = mod(iy+m, sys.n_cell);
-          jz = mod(iz+n, sys.n_cell);
-
-          // First particle in the chain
-          j = sys.hoc[jx][jy][jz];
-
-          while (j != -1) {
-            dr = vdist(part_mon[i].r, part_dpd[j].r);
-            E_ms += energy_c(dr);
-
-            // Next particle in the chain
-            j = part_dpd[j].ll;
-          }
-        }
-      }
-    }
-    E_ms *= sys.a_ms;
-
-    // Monomer-monomer interaction
-    for (j = 0; j < sys.n_mon; j++) {
-      if (i != j) {
-        dr = vdist(part_mon[i].r, part_mon[j].r);
-        E_mm += energy_c(dr);
-      }
-    }
-    E_mm *= sys.a_mm;
+void periodic_bc(Vector dr) {
+  if (dr.x > sys.length/2) {
+    dr.x -= sys.length;
+  } else if (dr.x < -sys.length/2) {
+    dr.x += sys.length;
   }
 
-  return E_ms + E_mm + E_fene;
+  if (dr.y > sys.length/2) {
+    dr.y -= sys.length;
+  } else if (dr.y < -sys.length/2) {
+    dr.y += sys.length;
+  }
+
+  if (dr.z > sys.length/2) {
+    dr.z -= sys.length;
+  } else if (dr.z < -sys.length/2) {
+    dr.z += sys.length;
+  }
 }

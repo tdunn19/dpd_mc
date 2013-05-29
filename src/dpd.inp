@@ -8,5 +8,6 @@
 10000        nsteps
 1.0         temp
 100         freq_sample
+100         freq_monitor
 1           calc_list
 822555134   iseed

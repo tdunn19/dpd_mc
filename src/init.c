@@ -10,6 +10,7 @@ void initialize(void) {
   input();
   init_param();
   init_stats();
+  monitor_mem();
   write_log();
   setup_coords();
 }
@@ -20,6 +21,7 @@ void init_param(void) {
 
   sys.n_dpd = sys.density * sys.volume;
   sys.length = pow(sys.volume, 1.0/3.0);
+  sys.monitor_step = 0;
 
   // Monomer-monomer bonds
   // sys.r_0 = r_max - r_eq, where r_max is the maximum
@@ -49,9 +51,16 @@ void init_param(void) {
 }
 
 void init_stats(void) {
-  sys.n_stats = 1;
+  sys.n_stats = 7;
   sys.stats = (Stats *) calloc(sys.n_stats, sizeof(Stats));
-  sys.stats[0].name = "Pressure            ";
+
+  sys.stats[0].name = "Pressure               ";
+  sys.stats[1].name = "Energy                 ";
+  sys.stats[2].name = "Re2                    ";
+  sys.stats[3].name = "Re2x                   ";
+  sys.stats[4].name = "Re2y                   ";
+  sys.stats[5].name = "Re2z                   ";
+  sys.stats[6].name = "Bond_length            ";
 }
 
 void setup_coords(void) {
@@ -72,26 +81,43 @@ void setup_coords(void) {
     part_mon[i].r.z = i * sys.r_eq;
   }
 
-  if (sys.calc_list == 1) new_list();
+  if (sys.calc_list == 1) {
+    new_list();
 
-  for (i = 0; i < sys.n_dpd; i++) {
-    if (sys.calc_list == 1) {
+    for (i = 0; i < sys.n_dpd; i++) {
       part_dpd[i].E = calc_energy_dpd(i);
-    } else {
-      part_dpd[i].E = calc_energy(i);
+      part_dpd[i].Eo = part_dpd[i].E;
     }
-    part_dpd[i].Eo = part_dpd[i].E;
-  }
 
-  for (i = 0; i < sys.n_mon; i++) {
-    if (sys.calc_list == 1) {
+    for (i = 0; i < sys.n_mon; i++) {
       part_mon[i].E = calc_energy_mon(i);
+      part_mon[i].Eo = part_dpd[i].E;
     }
-    else {
-      part_mon[i].E = calc_energy(i);
+  }
+  else {
+    calc_energy_brute();
+
+    for (i = 0; i < sys.n_dpd; i++) {
+      part_dpd[i].Eo = part_dpd[i].E;
     }
-    part_mon[i].Eo = part_mon[i].E;
+    for (i = 0; i < sys.n_mon; i++) {
+      part_mon[i].Eo = part_mon[i].E;
+    }
   }
 
   sys.energy = total_energy();
+}
+
+void monitor_mem(void) {
+  int i;
+  int nsize;
+
+  nsize = (sys.nsteps / sys.freq_monitor) + 1;
+
+  sys.mon.energy = (double *) calloc(nsize, sizeof(double));
+  sys.mon.re2 = (double *) calloc(nsize, sizeof(double));
+  sys.mon.rex = (double *) calloc(nsize, sizeof(double));
+  sys.mon.rey = (double *) calloc(nsize, sizeof(double));
+  sys.mon.rez = (double *) calloc(nsize, sizeof(double));
+  sys.mon.bond_length = (double *) calloc(nsize, sizeof(double));
 }

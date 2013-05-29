@@ -1,15 +1,15 @@
 SHELL=/bin/sh
 #
-SRCS = main.c init.c calc.c cell.c mc.c inout.c function.c ran.c 
+SRCS = main.c init.c calc.c cell.c energy.c mc.c inout.c function.c ran.c
 
-OBJS = main.o init.o calc.o cell.o mc.c inout.o function.o ran.o
+OBJS = main.o init.o calc.o cell.o energy.o mc.c inout.o function.o ran.o
 
 
 HFILES =  dpd.h
 CF     =  gcc
-FFLAGS = 
-LIBS   = -L. -lm 
-OUT    =  dpd.run 
+FFLAGS =
+LIBS   = -L. -lm
+OUT    =  dpd.run
 
 
 opt1:	$(SRCS:.c=.o)
@@ -25,7 +25,7 @@ prof:   $(SRCS)
 	$(CF) $(FFLAGS) -pg -o $(OUT) $(SRCS) $(LIBS)
 
 $(SRCS):	$(HFILES)
-$(OBJS):	$(HFILES)	
+$(OBJS):	$(HFILES)
 
 
 
