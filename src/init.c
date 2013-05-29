@@ -91,15 +91,14 @@ void setup_coords(void) {
 
     for (i = 0; i < sys.n_mon; i++) {
       part_mon[i].E = calc_energy_mon(i);
-      part_mon[i].Eo = part_dpd[i].E;
+      part_mon[i].Eo = part_mon[i].E;
     }
-  }
-  else {
+  } else {
     calc_energy_brute();
 
     for (i = 0; i < sys.n_dpd; i++) {
       part_dpd[i].Eo = part_dpd[i].E;
-    }
+
     for (i = 0; i < sys.n_mon; i++) {
       part_mon[i].Eo = part_mon[i].E;
     }
