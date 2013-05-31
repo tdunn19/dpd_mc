@@ -39,12 +39,14 @@ void init_param(void) {
 
     // Allocate memory for the head of chain array
     sys.hoc = (int ***) malloc((sys.n_cell+1)*sizeof(int **));
-
+    sys.hoc_copy = (int ***) malloc((sys.n_cell+1)*sizeof(int **));
     for (i = 0; i < sys.n_cell; i++) {
       sys.hoc[i] = (int **) malloc((sys.n_cell+1)*sizeof(int *));
+      sys.hoc_copy[i] = (int **) malloc((sys.n_cell+1)*sizeof(int *));
 
       for (j = 0; j < sys.n_cell; j++) {
         sys.hoc[i][j] = (int *) malloc((sys.n_cell+1)*sizeof(int));
+        sys.hoc_copy[i][j] = (int *) malloc((sys.n_cell+1)*sizeof(int));
       }
     }
   }
@@ -78,7 +80,8 @@ void setup_coords(void) {
   for (i = 0; i < sys.n_mon; i++) {
     part_mon[i].r.x = sys.length/2;
     part_mon[i].r.y = sys.length/2;
-    part_mon[i].r.z = i * sys.r_eq;
+    //part_mon[i].r.z = i * sys.r_eq;
+    part_mon[i].r.z = i * 0.2;
   }
 
   if (sys.calc_list == 1) {
@@ -87,18 +90,20 @@ void setup_coords(void) {
     for (i = 0; i < sys.n_dpd; i++) {
       part_dpd[i].E = calc_energy_dpd(i);
       part_dpd[i].Eo = part_dpd[i].E;
+      // printf("part_dpd[%d].r = (%lf,%lf,%lf)\tpart_dpd[%d].E = %lf->%lf\n",i,part_dpd[i].r.x,part_dpd[i].r.y,part_dpd[i].r.z,i,part_dpd[i].Eo,part_dpd[i].E);
     }
 
     for (i = 0; i < sys.n_mon; i++) {
       part_mon[i].E = calc_energy_mon(i);
       part_mon[i].Eo = part_mon[i].E;
+      printf("part_mon[%d].r = (%lf,%lf,%lf)\tpart_mon[%d].E = %lf->%lf\n",i,part_mon[i].r.x,part_mon[i].r.y,part_mon[i].r.z,i,part_mon[i].Eo,part_mon[i].E);
     }
   } else {
     calc_energy_brute();
 
     for (i = 0; i < sys.n_dpd; i++) {
       part_dpd[i].Eo = part_dpd[i].E;
-
+    }
     for (i = 0; i < sys.n_mon; i++) {
       part_mon[i].Eo = part_mon[i].E;
     }

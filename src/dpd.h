@@ -43,6 +43,7 @@ typedef struct parameter_type {
     freq_sample,
     iseed,
     ***hoc,
+    ***hoc_copy,
     monitor_step,
     nsteps,
     n_cell,
@@ -84,7 +85,9 @@ extern int     accept_move(void);
 extern void    calc_bond_length(void);
 extern void    calc_energy_brute(void);
 extern double  calc_energy_dpd(int i);
+extern double  calc_energy_dpd_debug(int i, int j);
 extern double  calc_energy_mon(int i);
+extern double  calc_energy_mon_debug(int i);
 extern void    calc_pressure(void);
 extern void    calc_re(void);
 extern void    check_bond(int i);
@@ -99,7 +102,7 @@ extern int     mod(int, int);
 extern void    monitor_mem(void);
 extern void    monte_carlo(void);
 extern void    new_list(void);
-extern void    period_bc(Vector);
+extern void    periodic_bc(Vector *);
 extern void    print_stats(void);
 extern double  ran3(void);
 extern void    random_move_dpd(int i);

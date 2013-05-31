@@ -42,7 +42,7 @@ void calc_pressure(void) {
   for (i = 0; i < sys.n_dpd-1; i++) {
     for (j = i+1; j < sys.n_dpd; j++) {
       dr = vdist(part_dpd[i].r, part_dpd[j].r);
-      periodic_bc(dr);
+      periodic_bc(&dr);
 
       r_ij = vmag(dr);
 
@@ -57,7 +57,7 @@ void calc_pressure(void) {
     // Contribution from monomer-monomer forces
     for (j = i+1; j < sys.n_mon; j++) {
       dr = vdist(part_mon[i].r, part_mon[j].r);
-      periodic_bc(dr);
+      periodic_bc(&dr);
       r_ij = vmag(dr);
 
       // Conservative force
@@ -80,7 +80,7 @@ void calc_pressure(void) {
     // Contribution from monomer-solvent forces
     for (j = 0; j < sys.n_dpd; j++) {
       dr = vdist(part_mon[i].r, part_dpd[j].r);
-      periodic_bc(dr);
+      periodic_bc(&dr);
 
       r_ij = vmag(dr);
 
@@ -131,22 +131,28 @@ void check_bond(int i) {
   // If not the first monomer in the chain
   if (i != 0) {
     dr = vdist(part_mon[i].r, part_mon[i-1].r);
-    periodic_bc(dr);
+    periodic_bc(&dr);
     r_ij = vmag(dr);
 
     if (r_ij > sys.r_max) {
       sys.bond_break = 1;
+      printf("\n\nbond broke: mon[%d]=(%lf,%lf,%lf),",i,part_mon[i].r.x,part_mon[i].r.y,part_mon[i].r.z); 
+      printf("mon[%d]=(%lf,%lf,%lf)\n",i-1,part_mon[i-1].r.x,part_mon[i-1].r.y,part_mon[i-1].r.z);
+      printf("\tr_ij = %lf\n", r_ij);
     }
   }
 
   // If not the last monomer in the chain
   if (i != (sys.n_mon - 1)) {
     dr = vdist(part_mon[i].r, part_mon[i+1].r);
-    periodic_bc(dr);
+    periodic_bc(&dr);
     r_ij = vmag(dr);
 
     if (r_ij > sys.r_max) {
       sys.bond_break = 1;
+      printf("\n\nbond broke: mon[%d]=(%lf,%lf,%lf),",i,part_mon[i].r.x,part_mon[i].r.y,part_mon[i].r.z); 
+      printf("mon[%d]=(%lf,%lf,%lf)\n",i+1,part_mon[i+1].r.x,part_mon[i+1].r.y,part_mon[i+1].r.z);
+      printf("\tr_ij = %lf\n", r_ij);
     }
   }
 }

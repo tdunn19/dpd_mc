@@ -19,7 +19,9 @@ int     accept_move(void);
 void    calc_bond_length(void);
 void    calc_energy_brute(void);
 double  calc_energy_dpd(int i);
+double  calc_energy_dpd_debug(int i, int j);
 double  calc_energy_mon(int i);
+double  calc_energy_mon_debug(int i);
 void    calc_pressure(void);
 void    calc_re(void);
 void    check_bond(int i);
@@ -34,7 +36,7 @@ int     mod(int, int);
 void    monitor_mem(void);
 void    monte_carlo(void);
 void    new_list(void);
-void    period_bc(Vector);
+void    periodic_bc(Vector *);
 void    print_stats(void);
 double  ran3(void);
 void    random_move_dpd(int i);
@@ -58,6 +60,7 @@ main() {
   if (sys.calc_list == 1) new_list();
 
   for (i = 0; i <= sys.nsteps; i++) {
+    //printf("beginning step %d\n", i);
     monte_carlo();
     if (i % sys.freq_sample == 0) sample();
     if (i % sys.freq_monitor == 0) monitor();
