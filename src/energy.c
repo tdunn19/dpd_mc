@@ -178,7 +178,7 @@ void calc_energy_brute(void) {
 double energy_c(Vector dr) {
   double r_ij, E_ij;
 
-  periodic_bc(dr);
+  periodic_bc(&dr);
 
   r_ij = vmag(dr);
 
@@ -197,8 +197,7 @@ double energy_fene(i, j) {
   Vector dr;
 
   dr = vdist(part_mon[i].r, part_mon[j].r);
-  periodic_bc(dr);
-
+  periodic_bc(&dr);
   r_ij = vmag(dr);
 
   if (r_ij <= sys.r_max) {

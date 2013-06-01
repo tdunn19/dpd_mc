@@ -15,6 +15,7 @@ void new_list(void) {
     for (iy = 0; iy < sys.n_cell; iy++) {
       for (iz = 0; iz < sys.n_cell; iz++) {
         sys.hoc[ix][iy][iz] = -1;
+        sys.hoc_copy[ix][iy][iz] = -1;
       }
     }
   }
@@ -30,6 +31,7 @@ void new_list(void) {
 
     // Make particle i the new head of chain
     sys.hoc[ix][iy][iz] = i;
+    sys.hoc_copy[ix][iy][iz] = i;
   }
 }
 
@@ -53,22 +55,22 @@ int check_cell(Vector r, Vector ro) {
   }
 }
 
-void periodic_bc(Vector dr) {
-  if (dr.x > sys.length/2) {
-    dr.x -= sys.length;
-  } else if (dr.x < -sys.length/2) {
-    dr.x += sys.length;
+void periodic_bc(Vector *dr) {
+  if ((*dr).x > sys.length/2) {
+    (*dr).x -= sys.length;
+  } else if ((*dr).x < -sys.length/2) {
+    (*dr).x += sys.length;
   }
 
-  if (dr.y > sys.length/2) {
-    dr.y -= sys.length;
-  } else if (dr.y < -sys.length/2) {
-    dr.y += sys.length;
+  if ((*dr).y > sys.length/2) {
+    (*dr).y -= sys.length;
+  } else if ((*dr).y < -sys.length/2) {
+    (*dr).y += sys.length;
   }
 
-  if (dr.z > sys.length/2) {
-    dr.z -= sys.length;
-  } else if (dr.z < -sys.length/2) {
-    dr.z += sys.length;
+  if ((*dr).z > sys.length/2) {
+    (*dr).z -= sys.length;
+  } else if ((*dr).z < -sys.length/2) {
+    (*dr).z += sys.length;
   }
 }

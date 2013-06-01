@@ -34,7 +34,7 @@ int     mod(int, int);
 void    monitor_mem(void);
 void    monte_carlo(void);
 void    new_list(void);
-void    period_bc(Vector);
+void    periodic_bc(Vector *);
 void    print_stats(void);
 double  ran3(void);
 void    random_move_dpd(int i);

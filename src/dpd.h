@@ -3,6 +3,7 @@
 // Inline substitutions
 
 #define P      sys.stats[0]
+#define Etot   sys.stats[1]
 #define RE2    sys.stats[2]
 #define RE2x   sys.stats[3]
 #define RE2y   sys.stats[4]
@@ -43,8 +44,13 @@ typedef struct parameter_type {
     freq_sample,
     iseed,
     ***hoc,
+    ***hoc_copy,
     monitor_step,
     nsteps,
+    n_accept_dpd,
+    n_accept_mon,
+    n_attempt_dpd,
+    n_attempt_mon,
     n_cell,
     n_dpd,
     n_mon,
@@ -55,6 +61,8 @@ typedef struct parameter_type {
     a_ms,
     a_ss,
     density,
+    dr_max_dpd,
+    dr_max_mon,
     energy,
     k_fene,
     length,
@@ -99,7 +107,7 @@ extern int     mod(int, int);
 extern void    monitor_mem(void);
 extern void    monte_carlo(void);
 extern void    new_list(void);
-extern void    period_bc(Vector);
+extern void    periodic_bc(Vector *);
 extern void    print_stats(void);
 extern double  ran3(void);
 extern void    random_move_dpd(int i);

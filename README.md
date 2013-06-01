@@ -24,6 +24,25 @@ Edit src/dpd.inp to change parameters.
 Changelog
 ---------
 
+Version 2.3 (May 31, 2013)
+*   bug fixes
+*   when old neighbour cells were considered, the head of chain was set to -1 to indicate that cell has already been counted. This caused calc_energy_dpd and calc_energy_mon to also not consider those cells, which was not intended
+    * made a new 3D array to deal with this: sys.hoc_copy
+    * can freely alter sys.hoc_copy under random_move functions without affected calc_energy functions
+    * in the future, may use memcpy function for efficiency, but getting segfaults with it now
+*   if a move is accepted, particles will now overwrite the old energies with the new energies
+    * that is, part.Eo = part.E
+    * this ensures that if a move gets rejected and all the particle energies are reset, only those affected by the move will be reset to part.Eo
+*   typo on lines mc.c:124-126
+    * should be part_dpd, not part_mon
+*   rewrote periodic_bc to use pointers
+*   typo in calc_bond_length: i < sys.n_mon-2 should be i < sys.n_mon-1
+*   new input parameters:
+    * dr_max_dpd and dr_max_mon: set maximum displacement of a MC move
+    * n_attempt_dpd and n_attempt_mon: counters for number of mc moves
+    * n_accept_dpd and n_attempt_mon: counters for number of accepted mc moves
+*   print_stats now prints selection and acceptance statistics of the monte carlo moves
+
 Version 2.2 (May 27, 2013)
 *   added monitor structure:
     * new variables: mon.energy, mon.re2, mon.rex, mon.rey, mon.rez, mon.bond_length, monitor_step
@@ -34,7 +53,7 @@ Version 2.2 (May 27, 2013)
     * calc_pressure was modified to account for polymer
 *   new function periodic_bc: takes in dr vector and adjusts it based on periodic boundary conditions
 *   new module energy.c: functions from calc.c and cell.c which related to energy were moved here
-*   new function calc_brute_force: brute force calculation of all monomer and dpd particle energies (deleted old calc_energy)
+*   new function calc_energy_brute: brute force calculation of all monomer and dpd particle energies (deleted old calc_energy)
 *   new function check_bond(i): checks for breakage in the bonds on either side of monomer i and adjust sys.bond_break accordingly
     * removed this same functionality from energy_fene, as it is now redundant
 *   fixed a bug: conservative soft pair potentials were missing a factor of 1/2
@@ -80,3 +99,12 @@ Version 1.1 (May 23, 2013)
 Version 1.0 (May 20, 2013)
 *	employed cell list method of calculation
 
+Future plans
+------------
+
+*   add the wall
+*   increase the probability of choosing a monomer over a dpd particle
+*   get Re calculating working with periodic boundary conditions
+*   add Rg sample function
+*   instead of using a global 3d array hoc_copy, use the memcpy function
+*   add an input parameter to vary the initial distance between monomers

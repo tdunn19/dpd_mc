@@ -1,13 +1,19 @@
 10          n_mon
 1           density
-3375	    volume
+1000	    volume
+1           calc_list
+
 1.0         r_c
+0.2         dr_max_dpd
+0.1         dr_max_mon
+
 25.0	    a_mm
 15.0        a_ms
 25.0        a_ss
-100000        nsteps
+
+1000000        nsteps
 1.0         temp
 100         freq_sample
 100         freq_monitor
-0           calc_list
-822555134   iseed
+
+825245134   iseed

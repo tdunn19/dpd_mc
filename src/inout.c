@@ -12,7 +12,10 @@ void input(void) {
     fscanf(fp, "%d%*s", &sys.n_mon);
     fscanf(fp, "%lf%*s", &sys.density);
     fscanf(fp, "%lf%*s", &sys.volume);
+    fscanf(fp, "%d%*s", &sys.calc_list);
     fscanf(fp, "%lf%*s", &sys.r_c);
+    fscanf(fp, "%lf%*s", &sys.dr_max_dpd);
+    fscanf(fp, "%lf%*s", &sys.dr_max_mon);
     fscanf(fp, "%lf%*s", &sys.a_mm);
     fscanf(fp, "%lf%*s", &sys.a_ms);
     fscanf(fp, "%lf%*s", &sys.a_ss);
@@ -20,7 +23,6 @@ void input(void) {
     fscanf(fp, "%lf%*s", &sys.temp);
     fscanf(fp, "%d%*s", &sys.freq_sample);
     fscanf(fp, "%d%*s", &sys.freq_monitor);
-    fscanf(fp, "%d%*s", &sys.calc_list);
     fscanf(fp, "%d%*s", &sys.iseed);
   }
 
@@ -34,15 +36,17 @@ void write_log(void) {
   printf("density     \t\t\t%10.5lf\n", sys.density);
   printf("volume      \t\t\t%10.5lf\n", sys.volume);
   printf("n_dpd       \t\t\t%10d\n", sys.n_dpd);
+  printf("calc_list   \t\t\t%10d\n\n", sys.calc_list);
   printf("r_c         \t\t\t%10.5lf\n", sys.r_c);
+  printf("dr_max_dpd  \t\t\t%10.5lf\n", sys.dr_max_dpd);
+  printf("dr_max_mon  \t\t\t%10.5lf\n\n", sys.dr_max_mon);
   printf("a_mm        \t\t\t%10.5lf\n", sys.a_mm);
   printf("a_ms        \t\t\t%10.5lf\n", sys.a_ms);
-  printf("a_ss        \t\t\t%10.5lf\n", sys.a_ss);
+  printf("a_ss        \t\t\t%10.5lf\n\n", sys.a_ss);
   printf("nsteps      \t\t\t%10d\n", sys.nsteps);
   printf("temp        \t\t\t%10.5lf\n", sys.temp);
   printf("freq_sample \t\t\t%10d\n", sys.freq_sample);
-  printf("freq_monitor\t\t\t%10d\n", sys.freq_monitor);
-  printf("calc_list   \t\t\t%10d\n", sys.calc_list);
+  printf("freq_monitor\t\t\t%10d\n\n", sys.freq_monitor);
   printf("iseed       \t\t\t%10d\n", sys.iseed);
   printf("\n\n");
 }
@@ -60,6 +64,7 @@ void final_stats(void) {
 
 void print_stats(void) {
   int i;
+  double perc_dpd, perc_mon;
 
   printf("\nFinal averages\n\n");
 
@@ -67,6 +72,17 @@ void print_stats(void) {
     printf("%s %12.8lf +/- %12.8lf\n",
       sys.stats[i].name, sys.stats[i].sum, sys.stats[i].err);
   }
+
+  perc_dpd = (double) sys.n_accept_dpd / sys.n_attempt_dpd;
+  perc_mon = (double) sys.n_accept_mon / sys.n_attempt_mon;
+
+  printf("\n\nSelection and acceptance stats\n\n");
+  printf("Particle    Moves    Accepted  Percent\n");
+  printf("--------  ---------  --------  -------\n");
+  printf("     DPD  %9d%10d%9.2lf\n",
+    sys.n_attempt_dpd, sys.n_accept_dpd, perc_dpd);
+  printf(" Monomer  %9d%10d%9.2lf\n",
+    sys.n_attempt_mon, sys.n_accept_mon, perc_mon);
 }
 
 void write_mon(void) {
