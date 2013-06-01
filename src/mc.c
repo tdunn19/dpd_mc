@@ -15,7 +15,11 @@ void monte_carlo(void) {
 
   if (i >= sys.n_dpd) {
     // A monomer was chosen
+<<<<<<< HEAD
 
+=======
+    sys.n_attempt_mon += 1;
+>>>>>>> polymer
     i = i % sys.n_dpd;
     //printf("monomer[%d] was chosen\n", i);
     random_move_mon(i);
@@ -34,7 +38,12 @@ void monte_carlo(void) {
         part_dpd[j].E = part_dpd[j].Eo;
       }
     } else {
+<<<<<<< HEAD
         //printf("MOVE ACCEPTED\n\n");
+=======
+      sys.n_accept_mon += 1;
+
+>>>>>>> polymer
       for (j = 0; j < sys.n_mon; j++) {
         part_mon[j].Eo = part_mon[j].E;
       }
@@ -42,10 +51,14 @@ void monte_carlo(void) {
       for (j = 0; j < sys.n_dpd; j++) {
         part_dpd[j].Eo = part_dpd[j].E;
       }
+<<<<<<< HEAD
 
+=======
+>>>>>>> polymer
     }
   } else {
     // A DPD particle was chosen
+    sys.n_attempt_dpd += 1;
     random_move_dpd(i);
 
     if (!accept_move()) {
@@ -61,6 +74,11 @@ void monte_carlo(void) {
         part_mon[j].E = part_mon[j].Eo;
       }
     } else {
+<<<<<<< HEAD
+=======
+      sys.n_accept_dpd += 1;
+
+>>>>>>> polymer
       for (j = 0; j < sys.n_mon; j++) {
         part_mon[j].Eo = part_mon[j].E;
       }
@@ -68,6 +86,10 @@ void monte_carlo(void) {
       for (j = 0; j < sys.n_dpd; j++) {
         part_dpd[j].Eo = part_dpd[j].E;
       }
+<<<<<<< HEAD
+=======
+
+>>>>>>> polymer
       // Generate a new list if the particle changed cells
       if (sys.calc_list && check_cell(part_dpd[i].r, part_dpd[i].ro)) {
         new_list();
@@ -88,10 +110,10 @@ void random_move_dpd(int i) {
   part_dpd[i].ro.y = part_dpd[i].r.y;
   part_dpd[i].ro.z = part_dpd[i].r.z;
 
-  // Displacement between -0.5 and +0.5 in each dimension
-  part_dpd[i].r.x += ran3() - 0.5;
-  part_dpd[i].r.y += ran3() - 0.5;
-  part_dpd[i].r.z += ran3() - 0.5;
+  // Displacement between -dr_max and +dr_max in each dimension
+  part_dpd[i].r.x += sys.dr_max_dpd * (2*ran3() - 1);
+  part_dpd[i].r.y += sys.dr_max_dpd * (2*ran3() - 1);
+  part_dpd[i].r.z += sys.dr_max_dpd * (2*ran3() - 1);
 
   // Periodic boundary conditions
   if (part_dpd[i].r.x > sys.length) {
@@ -173,12 +195,15 @@ void random_move_dpd(int i) {
     if (check_cell(part_dpd[i].r, part_dpd[i].ro)) {
       // The particle entered a new cell
       // Must consider the neighbors of the old cell
+<<<<<<< HEAD
       // First, make a copy of the HOC array, which we can freely modify
       // memcpy(hoc_copy, sys.hoc, sizeof(hoc_copy));
       // memcpy(hoc_copy, sys.hoc, 2*sizeof(hoc_copy));
       // memcpy(hoc_copy, sys.hoc, sizeof(pow((sys.n_cell+1)*sizeof(int),3)));
 
 
+=======
+>>>>>>> polymer
       ixo = (int) part_dpd[i].ro.x / sys.r_cell;
       iyo = (int) part_dpd[i].ro.y / sys.r_cell;
       izo = (int) part_dpd[i].ro.z / sys.r_cell;
@@ -254,8 +279,12 @@ void random_move_dpd(int i) {
                part_dpd[j].E = calc_energy_dpd_debug(j,i);}
               j = part_dpd[j].ll;
             }
+<<<<<<< HEAD
             // To account for overcounting, set HOC to -1 to indicate
             // this cell
+=======
+            // To account for overcounting, set HOC to -1
+>>>>>>> polymer
             sys.hoc_copy[jx][jy][jz] = -1;
           }
         }
@@ -308,10 +337,10 @@ void random_move_mon(int i) {
   part_mon[i].ro.y = part_mon[i].r.y;
   part_mon[i].ro.z = part_mon[i].r.z;
 
-  // Displacement between -0.5 and +0.5 in each dimension
-  part_mon[i].r.x += ran3() - 0.5;
-  part_mon[i].r.y += ran3() - 0.5;
-  part_mon[i].r.z += ran3() - 0.5;
+  // Displacement between -dr_max and +dr_max in each dimension
+  part_mon[i].r.x += sys.dr_max_mon * (2*ran3() - 1);
+  part_mon[i].r.y += sys.dr_max_mon * (2*ran3() - 1);
+  part_mon[i].r.z += sys.dr_max_mon * (2*ran3() - 1);
 
 
   // Periodic boundary conditions
@@ -401,7 +430,7 @@ void random_move_mon(int i) {
             jz = mod(izo+n, sys.n_cell);
           //printf("now calculating cell [%d][%d][%d]\n",jx,jy,jz);
 
-            j = sys.hoc[jx][jy][jz];
+            j = sys.hoc_copy[jx][jy][jz];
 
             while (j != -1) {
               part_dpd[j].Eo = part_dpd[j].E;
@@ -411,7 +440,7 @@ void random_move_mon(int i) {
             }
             //printf("\n");
             // To account for overcounting, set HOC to -1
-            sys.hoc[jx][jy][jz] = -1;
+            sys.hoc_copy[jx][jy][jz] = -1;
           }
         }
       }
@@ -425,7 +454,7 @@ void random_move_mon(int i) {
             jz = mod(izo+n, sys.n_cell);
           //printf("now calculating cell [%d][%d][%d]\n",jx,jy,jz);
 
-            j = sys.hoc[jx][jy][jz];
+            j = sys.hoc_copy[jx][jy][jz];
 
             while (j != -1) {
               part_dpd[j].Eo = part_dpd[j].E;
@@ -435,7 +464,7 @@ void random_move_mon(int i) {
             }
             //printf("\n");
             // To account for overcounting, set HOC to -1
-            sys.hoc[jx][jy][jz] = -1;
+            sys.hoc_copy[jx][jy][jz] = -1;
           }
         }
       }
@@ -449,7 +478,7 @@ void random_move_mon(int i) {
             jy = mod(iyo+m, sys.n_cell);
           //printf("now calculating cell [%d][%d][%d]\n",jx,jy,jz);
 
-            j = sys.hoc[jx][jy][jz];
+            j = sys.hoc_copy[jx][jy][jz];
 
             while (j != -1) {
               part_dpd[j].Eo = part_dpd[j].E;

@@ -9,6 +9,7 @@ void sample(void) {
 
   P.now = 0;
   BL.now = 0;
+  Etot.now = sys.energy;
 
   calc_pressure();
   calc_re();
@@ -22,7 +23,7 @@ void sample(void) {
 }
 
 void monitor(void) {
-  sys.mon.energy[sys.monitor_step] = sys.energy;
+  sys.mon.energy[sys.monitor_step] = Etot.now;
   sys.mon.re2[sys.monitor_step] = RE2.now;
   sys.mon.rex[sys.monitor_step] = sqrt(RE2x.now);
   sys.mon.rey[sys.monitor_step] = sqrt(RE2y.now);
@@ -36,14 +37,17 @@ void calc_pressure(void) {
   // Calculate the pressure using the truncated virial expansion
   int i, j;
   double r_ij, fact;
-  Vector dr, drnew;
+  Vector dr;
 
   // Contribution from solvent-solvent forces
   for (i = 0; i < sys.n_dpd-1; i++) {
     for (j = i+1; j < sys.n_dpd; j++) {
       dr = vdist(part_dpd[i].r, part_dpd[j].r);
       periodic_bc(&dr);
+<<<<<<< HEAD
 
+=======
+>>>>>>> polymer
       r_ij = vmag(dr);
 
       // Check for cutoff distance
@@ -113,7 +117,7 @@ void calc_bond_length(void) {
   int i;
   Vector dr;
 
-  for (i = 0; i < sys.n_mon-2; i++) {
+  for (i = 0; i < sys.n_mon-1; i++) {
      dr = vdist(part_mon[i].r, part_mon[i+1].r);
      BL.now += vmag(dr);
   }

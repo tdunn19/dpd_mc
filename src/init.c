@@ -22,6 +22,10 @@ void init_param(void) {
   sys.n_dpd = sys.density * sys.volume;
   sys.length = pow(sys.volume, 1.0/3.0);
   sys.monitor_step = 0;
+  sys.n_accept_dpd = 0;
+  sys.n_accept_mon = 0;
+  sys.n_attempt_dpd = 0;
+  sys.n_attempt_mon = 0;
 
   // Monomer-monomer bonds
   // sys.r_0 = r_max - r_eq, where r_max is the maximum
@@ -40,6 +44,10 @@ void init_param(void) {
     // Allocate memory for the head of chain array
     sys.hoc = (int ***) malloc((sys.n_cell+1)*sizeof(int **));
     sys.hoc_copy = (int ***) malloc((sys.n_cell+1)*sizeof(int **));
+<<<<<<< HEAD
+=======
+
+>>>>>>> polymer
     for (i = 0; i < sys.n_cell; i++) {
       sys.hoc[i] = (int **) malloc((sys.n_cell+1)*sizeof(int *));
       sys.hoc_copy[i] = (int **) malloc((sys.n_cell+1)*sizeof(int *));
@@ -104,6 +112,10 @@ void setup_coords(void) {
     for (i = 0; i < sys.n_dpd; i++) {
       part_dpd[i].Eo = part_dpd[i].E;
     }
+<<<<<<< HEAD
+=======
+
+>>>>>>> polymer
     for (i = 0; i < sys.n_mon; i++) {
       part_mon[i].Eo = part_mon[i].E;
     }

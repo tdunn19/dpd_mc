@@ -338,10 +338,13 @@ double energy_c(Vector dr) {
   // Vector dro = dr;
 
   periodic_bc(&dr);
+<<<<<<< HEAD
   // if (dro.x != dr.x || dro.y != dr.y || dro.z != dr.z) {
   //   printf("\n\ndr = %lf,%lf,%lf",dr.x,dr.y,dr.z);
   //   printf("\ndro = %lf,%lf,%lf\n\n",dro.x,dro.y,dro.z);
   // }
+=======
+>>>>>>> polymer
 
   r_ij = vmag(dr);
 
@@ -361,7 +364,10 @@ double energy_fene(i, j) {
 
   dr = vdist(part_mon[i].r, part_mon[j].r);
   periodic_bc(&dr);
+<<<<<<< HEAD
 
+=======
+>>>>>>> polymer
   r_ij = vmag(dr);
 
   if (r_ij <= sys.r_max) {

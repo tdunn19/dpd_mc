@@ -3,6 +3,7 @@
 // Inline substitutions
 
 #define P      sys.stats[0]
+#define Etot   sys.stats[1]
 #define RE2    sys.stats[2]
 #define RE2x   sys.stats[3]
 #define RE2y   sys.stats[4]
@@ -46,6 +47,10 @@ typedef struct parameter_type {
     ***hoc_copy,
     monitor_step,
     nsteps,
+    n_accept_dpd,
+    n_accept_mon,
+    n_attempt_dpd,
+    n_attempt_mon,
     n_cell,
     n_dpd,
     n_mon,
@@ -56,6 +61,8 @@ typedef struct parameter_type {
     a_ms,
     a_ss,
     density,
+    dr_max_dpd,
+    dr_max_mon,
     energy,
     k_fene,
     length,
