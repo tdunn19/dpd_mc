@@ -9,13 +9,12 @@
 void monte_carlo(void) {
   int i, j, ix, iy, iz, ixo, iyo, izo;
 
-  // Choose a random particle
-  i = rand() % (sys.n_dpd + sys.n_mon);
-
-  if (i >= sys.n_dpd) {
+  if (ran3() < sys.mc_ratio) {
     // A monomer was chosen
     sys.n_attempt_mon += 1;
-    i = i % sys.n_dpd;
+
+    // Randomly move a monomer
+    i = rand() % sys.n_mon;
     random_move_mon(i);
 
     if (!accept_move()) {
@@ -31,6 +30,7 @@ void monte_carlo(void) {
         part_dpd[j].E = part_dpd[j].Eo;
       }
     } else {
+      // Move was accepeted
       sys.n_accept_mon += 1;
 
       part_mon[i].ro.x = part_mon[i].r.x;
@@ -48,6 +48,9 @@ void monte_carlo(void) {
   } else {
     // A DPD particle was chosen
     sys.n_attempt_dpd += 1;
+
+    // Randomly move a DPD particle
+    i = rand() % sys.n_dpd;
     random_move_dpd(i);
 
     if (!accept_move()) {
@@ -63,6 +66,7 @@ void monte_carlo(void) {
         part_mon[j].E = part_mon[j].Eo;
       }
     } else {
+      // The move was accepted
       sys.n_accept_dpd += 1;
 
       part_dpd[i].ro.x = part_dpd[i].r.x;

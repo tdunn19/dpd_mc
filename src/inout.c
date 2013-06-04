@@ -5,7 +5,6 @@
 
 void input(void) {
   FILE *fp;
-
   if ((fp = fopen("dpd.inp", "r")) == NULL) {
     printf("Cannot open file: dpd.inp\n");
   } else {
@@ -20,6 +19,7 @@ void input(void) {
     fscanf(fp, "%lf%*s", &sys.a_ms);
     fscanf(fp, "%lf%*s", &sys.a_ss);
     fscanf(fp, "%d%*s", &sys.nsteps);
+    fscanf(fp, "%lf%*s", &sys.mc_ratio);
     fscanf(fp, "%lf%*s", &sys.temp);
     fscanf(fp, "%d%*s", &sys.freq_sample);
     fscanf(fp, "%d%*s", &sys.freq_monitor);
@@ -44,6 +44,7 @@ void write_log(void) {
   printf("a_ms        \t\t\t%10.5lf\n", sys.a_ms);
   printf("a_ss        \t\t\t%10.5lf\n\n", sys.a_ss);
   printf("nsteps      \t\t\t%10d\n", sys.nsteps);
+  printf("mc_ratio    \t\t\t%10.5lf\n", sys.mc_ratio);
   printf("temp        \t\t\t%10.5lf\n", sys.temp);
   printf("freq_sample \t\t\t%10d\n", sys.freq_sample);
   printf("freq_monitor\t\t\t%10d\n\n", sys.freq_monitor);
@@ -103,6 +104,24 @@ void write_mon(void) {
     for (i = 0; i < sys.monitor_step; i++) {
       fprintf(fp, "%d  %lf %lf %lf %lf\n",
        i, sys.mon.re2[i], sys.mon.rex[i], sys.mon.rey[i], sys.mon.rez[i]);
+    }
+  }
+
+  if ((fp = fopen("rg.dat", "w")) == NULL) {
+    printf("Cannot open file: rg.dat\n");
+  } else {
+    for (i = 0; i < sys.monitor_step; i++) {
+      fprintf(fp, "%d  %lf %lf %lf %lf\n",
+       i, sys.mon.rg2[i], sys.mon.rgx[i], sys.mon.rgy[i], sys.mon.rgz[i]);
+    }
+  }
+
+  if ((fp = fopen("cm.dat", "w")) == NULL) {
+    printf("Cannot open file: cm.dat\n");
+  } else {
+    for (i = 0; i < sys.monitor_step; i++) {
+      fprintf(fp, "%d  %lf %lf %lf\n",
+       i, sys.mon.cmx[i], sys.mon.cmy[i], sys.mon.cmz[i]);
     }
   }
 

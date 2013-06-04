@@ -9,7 +9,6 @@ double calc_energy_dpd(int i) {
   int ix, iy, iz, jx, jy, jz, j, l, m, n;
   double E_ss = 0, E_ms = 0;
   Vector dr;
-
   // Determine cell number of particle i
   ix = (int) part_dpd[i].r.x / sys.r_cell;
   iy = (int) part_dpd[i].r.y / sys.r_cell;

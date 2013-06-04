@@ -8,7 +8,11 @@
 #define RE2x   sys.stats[3]
 #define RE2y   sys.stats[4]
 #define RE2z   sys.stats[5]
-#define BL     sys.stats[6]
+#define RG2    sys.stats[6]
+#define RG2x   sys.stats[7]
+#define RG2y   sys.stats[8]
+#define RG2z   sys.stats[9]
+#define BL     sys.stats[10]
 
 /* Structure defintions */
 
@@ -33,7 +37,8 @@ typedef struct stats_type {
 } Stats;
 
 typedef struct monitor_type {
-  double *energy, *re2, *rex, *rey, *rez, *bond_length;
+  double *energy, *re2, *rex, *rey, *rez,
+    *rg2, *rgx, *rgy, *rgz, *cmx, *cmy, *cmz, *bond_length;
 } Monitor;
 
 typedef struct parameter_type {
@@ -66,6 +71,7 @@ typedef struct parameter_type {
     energy,
     k_fene,
     length,
+    mc_ratio,
     r_c,
     r_cell,
     r_eq,
@@ -93,8 +99,10 @@ extern void    calc_bond_length(void);
 extern void    calc_energy_brute(void);
 extern double  calc_energy_dpd(int i);
 extern double  calc_energy_mon(int i);
+extern void    calc_cm(void);
 extern void    calc_pressure(void);
 extern void    calc_re(void);
+extern void    calc_rg(void);
 extern void    check_bond(int i);
 extern int     check_cell(Vector, Vector);
 extern double  energy_c(Vector);

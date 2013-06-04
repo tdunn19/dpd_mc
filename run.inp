@@ -1,3 +1,4 @@
+n_mon   10
 density	1
 volume	1000
 nsteps	10000	

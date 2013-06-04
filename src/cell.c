@@ -8,7 +8,6 @@
 void new_list(void) {
   int i, ix, iy, iz, n;
 
-
   // Initialize head of chain for each cell.
   // -1 indiciates the end of the chain.
   for (ix = 0; ix < sys.n_cell; ix++) {

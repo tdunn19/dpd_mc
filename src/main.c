@@ -20,8 +20,10 @@ void    calc_bond_length(void);
 void    calc_energy_brute(void);
 double  calc_energy_dpd(int i);
 double  calc_energy_mon(int i);
+void    calc_cm(void);
 void    calc_pressure(void);
 void    calc_re(void);
+void    calc_rg(void);
 void    check_bond(int i);
 int     check_cell(Vector, Vector);
 double  energy_c(Vector);
@@ -55,7 +57,6 @@ main() {
   begin = clock();
   initialize();
   srand(time(NULL));
-  if (sys.calc_list == 1) new_list();
 
   for (i = 0; i <= sys.nsteps; i++) {
     monte_carlo();

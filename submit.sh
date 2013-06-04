@@ -6,13 +6,15 @@ dir=/home/tdunn/scratch/dpd
 awk '{$1=""; print $0;}' run.inp > runtemp.inp
 
 # Read input value and store parameters
-density=$(sed -n '1p' runtemp.inp)
-density=${density/ /} # Remove white space (for file names)
-volume=$(sed -n '2p' runtemp.inp)
+nmon=$(sed -n '1p' runtemp.inp)
+nmon=${nmon/ /} # Remove white space (for file names)
+density=$(sed -n '2p' runtemp.inp)
+density=${density/ /}
+volume=$(sed -n '3p' runtemp.inp)
 volume=${volume/ /}
-nsteps=$(sed -n '3p' runtemp.inp)
+nsteps=$(sed -n '4p' runtemp.inp)
 nsteps=${nsteps/ /}
-nfiles=$(sed -n '4p' runtemp.inp)
+nfiles=$(sed -n '5p' runtemp.inp)
 nfiles=${nfiles/ /}
 
 rm runtemp.inp
@@ -22,6 +24,7 @@ cp run.inp "$dir"/src
 cd "$dir"/src
 
 # Change dpd.inp with parameters scanned from run.inp
+sed -i 's/.*n_mon.*/'$nmon'\t\t\tn_mon/g' dpd.inp
 sed -i 's/.*density.*/'$density'\t\t\tdensity/g' dpd.inp
 sed -i 's/.*volume.*/'$volume'\t\t\tvolume/g' dpd.inp
 sed -i 's/.*nsteps.*/'$nsteps'\t\t\tnsteps/g' dpd.inp
@@ -30,10 +33,14 @@ rm run.sh run.inp
 
 # Create directories if they don't already exist
 mkdir "$dir"/results/
-mkdir "$dir"/results/d"$density"
-mkdir "$dir"/results/d"$density"/pressure
-mkdir "$dir"/results/d"$density"/input
-mkdir "$dir"/results/d"$density"/output
+mkdir "$dir"/results/n"$nmon"
+mkdir "$dir"/results/n"$nmon"/d"$density"
+mkdir "$dir"/results/n"$nmon"/d"$density"/energy
+mkdir "$dir"/results/n"$nmon"/d"$density"/re
+mkdir "$dir"/results/n"$nmon"/d"$density"/rg
+mkdir "$dir"/results/n"$nmon"/d"$density"/bond_length
+mkdir "$dir"/results/n"$nmon"/d"$density"/input
+mkdir "$dir"/results/n"$nmon"/d"$density"/output
 
 w=1
 u=1
@@ -46,19 +53,20 @@ do
 	loop='{'$u'..'$v'}; do'
 
 
-	mkdir "$dir"/src/temp/'d'$density'-'$w''
+	mkdir "$dir"/src/temp/'n'$nmon'-d'$density'-'$w''
 	cd "$dir"/src
-	cp * "$dir"/src/temp/'d'$density'-'$w''
-	cp run.inp "$dir"/results/d"$density"/input
+	cp * "$dir"/src/temp/'n'$nmon'-d'$density'-'$w''
+	cp run.inp "$dir"/results/n"$nmon"/d"$density"/input
 	
-	cd "$dir"/src/temp/'d'$density'-'$w''
+	cd "$dir"/src/temp/'n'$nmon'-d'$density'-'$w''
+	sed -i "s/\(nmon *= *\).*/\1$nmon/" run.sh
 	sed -i "s/\(density *= *\).*/\1$density/" run.sh
 	sed -i "s/\(part *= *\).*/\1$w/" run.sh
 	sed -i "s/\(for u in *  *\).*/\1$loop/" run.sh
 
 	qsub -l h_rt=48:00:00 run.sh # change
 
-	echo 'd'$density'-'$w' from '$u' to '$v''
+	echo 'n'$nmon'-d'$density'-'$w' from '$u' to '$v''
 	w=`expr $w + 1`
 	u=`expr $v + 1`
 done

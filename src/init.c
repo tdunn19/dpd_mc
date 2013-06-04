@@ -58,7 +58,7 @@ void init_param(void) {
 }
 
 void init_stats(void) {
-  sys.n_stats = 7;
+  sys.n_stats = 11;
   sys.stats = (Stats *) calloc(sys.n_stats, sizeof(Stats));
 
   sys.stats[0].name = "Pressure               ";
@@ -67,7 +67,11 @@ void init_stats(void) {
   sys.stats[3].name = "Re2x                   ";
   sys.stats[4].name = "Re2y                   ";
   sys.stats[5].name = "Re2z                   ";
-  sys.stats[6].name = "Bond_length            ";
+  sys.stats[6].name = "Rg2                    ";
+  sys.stats[7].name = "Rg2x                   ";
+  sys.stats[8].name = "Rg2y                   ";
+  sys.stats[9].name = "Rg2z                   ";
+  sys.stats[10].name = "Bond_length            ";
 }
 
 void setup_coords(void) {
@@ -80,12 +84,18 @@ void setup_coords(void) {
     part_dpd[i].r.x = sys.length*ran3();
     part_dpd[i].r.y = sys.length*ran3();
     part_dpd[i].r.z = sys.length*ran3();
+    part_dpd[i].ro.x = part_dpd[i].r.x;
+    part_dpd[i].ro.y = part_dpd[i].r.y;
+    part_dpd[i].ro.z = part_dpd[i].r.z;
   }
 
   for (i = 0; i < sys.n_mon; i++) {
     part_mon[i].r.x = sys.length/2;
     part_mon[i].r.y = sys.length/2;
     part_mon[i].r.z = i * sys.r_eq;
+    part_mon[i].ro.x = part_mon[i].r.x;
+    part_mon[i].ro.y = part_mon[i].r.y;
+    part_mon[i].ro.z = part_mon[i].r.z;
   }
 
   if (sys.calc_list == 1) {
@@ -126,5 +136,12 @@ void monitor_mem(void) {
   sys.mon.rex = (double *) calloc(nsize, sizeof(double));
   sys.mon.rey = (double *) calloc(nsize, sizeof(double));
   sys.mon.rez = (double *) calloc(nsize, sizeof(double));
+  sys.mon.rg2 = (double *) calloc(nsize, sizeof(double));
+  sys.mon.rgx = (double *) calloc(nsize, sizeof(double));
+  sys.mon.rgy = (double *) calloc(nsize, sizeof(double));
+  sys.mon.rgz = (double *) calloc(nsize, sizeof(double));
+  sys.mon.cmx = (double *) calloc(nsize, sizeof(double));
+  sys.mon.cmy = (double *) calloc(nsize, sizeof(double));
+  sys.mon.cmz = (double *) calloc(nsize, sizeof(double));
   sys.mon.bond_length = (double *) calloc(nsize, sizeof(double));
 }
