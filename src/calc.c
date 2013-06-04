@@ -95,17 +95,23 @@ void calc_pressure(void) {
 }
 
 void calc_re(void) {
-  double rex, rey, rez;
+  int i;
   Vector dr;
 
-  dr = vdist(part_mon[sys.n_mon-1].r, part_mon[0].r);
-  rex = dr.x;
-  rey = dr.y;
-  rez = dr.z;
+  for (i = 1; i < sys.n_mon; i++) {
+    dr = vdist(part_mon[i].r, part_mon[i-1].r);
+    periodic_bc(&dr);
 
-  RE2x.now = rex*rex;
-  RE2y.now = rey*rey;
-  RE2z.now = rez*rez;
+    part_mon[i].r.x = part_mon[i-1].r.x + dr.x;
+    part_mon[i].r.y = part_mon[i-1].r.y + dr.y;
+    part_mon[i].r.z = part_mon[i-1].r.z + dr.z;
+  }
+
+  dr = vdist(part_mon[sys.n_mon-1].r, part_mon[0].r);
+
+  RE2x.now = dr.x * dr.x;
+  RE2y.now = dr.y * dr.y;
+  RE2z.now = dr.z * dr.z;
   RE2.now = RE2x.now + RE2y.now + RE2z.now;
 }
 
@@ -113,8 +119,9 @@ void calc_bond_length(void) {
   int i;
   Vector dr;
 
-  for (i = 0; i < sys.n_mon-1; i++) {
-     dr = vdist(part_mon[i].r, part_mon[i+1].r);
+  for (i = 1; i < sys.n_mon; i++) {
+     dr = vdist(part_mon[i].r, part_mon[i-1].r);
+     periodic_bc(&dr);
      BL.now += vmag(dr);
   }
 

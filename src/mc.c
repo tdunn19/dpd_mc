@@ -33,6 +33,10 @@ void monte_carlo(void) {
     } else {
       sys.n_accept_mon += 1;
 
+      part_mon[i].ro.x = part_mon[i].r.x;
+      part_mon[i].ro.y = part_mon[i].r.y;
+      part_mon[i].ro.z = part_mon[i].r.z;
+
       for (j = 0; j < sys.n_mon; j++) {
         part_mon[j].Eo = part_mon[j].E;
       }
@@ -60,6 +64,10 @@ void monte_carlo(void) {
       }
     } else {
       sys.n_accept_dpd += 1;
+
+      part_dpd[i].ro.x = part_dpd[i].r.x;
+      part_dpd[i].ro.y = part_dpd[i].r.y;
+      part_dpd[i].ro.z = part_dpd[i].r.z;
 
       for (j = 0; j < sys.n_mon; j++) {
         part_mon[j].Eo = part_mon[j].E;

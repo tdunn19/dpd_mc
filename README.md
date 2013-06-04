@@ -28,7 +28,7 @@ Version 2.3 (May 31, 2013)
 *   bug fixes
 *   when old neighbour cells were considered, the head of chain was set to -1 to indicate that cell has already been counted. This caused calc_energy_dpd and calc_energy_mon to also not consider those cells, which was not intended
     * made a new 3D array to deal with this: sys.hoc_copy
-    * can freely alter sys.hoc_copy under random_move functions without affected calc_energy functions
+    * can freely alter sys.hoc_copy under random_move functions without affecting calc_energy functions
     * in the future, may use memcpy function for efficiency, but getting segfaults with it now
 *   if a move is accepted, particles will now overwrite the old energies with the new energies
     * that is, part.Eo = part.E
@@ -39,8 +39,8 @@ Version 2.3 (May 31, 2013)
 *   typo in calc_bond_length: i < sys.n_mon-2 should be i < sys.n_mon-1
 *   new input parameters:
     * dr_max_dpd and dr_max_mon: set maximum displacement of a MC move
-    * n_attempt_dpd and n_attempt_mon: counters for number of mc moves
-    * n_accept_dpd and n_attempt_mon: counters for number of accepted mc moves
+    * n_attempt_dpd and n_attempt_mon: counters for number of MC moves
+    * n_accept_dpd and n_attempt_mon: counters for number of accepted MC moves
 *   print_stats now prints selection and acceptance statistics of the monte carlo moves
 
 Version 2.2 (May 27, 2013)
@@ -99,12 +99,12 @@ Version 1.1 (May 23, 2013)
 Version 1.0 (May 20, 2013)
 *	employed cell list method of calculation
 
-Future plans
-------------
+To-do list
+----------
 
 *   add the wall
 *   increase the probability of choosing a monomer over a dpd particle
-*   get Re calculating working with periodic boundary conditions
+*   get Re calculation working with periodic boundary conditions
 *   add Rg sample function
 *   instead of using a global 3d array hoc_copy, use the memcpy function
 *   add an input parameter to vary the initial distance between monomers
