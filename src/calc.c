@@ -74,8 +74,8 @@ void calc_cm(void) {
   }
 
   sys.mon.cmx[sys.monitor_step] /= sys.n_mon;
-  sys.mon.cmx[sys.monitor_step] /= sys.n_mon;
-  sys.mon.cmx[sys.monitor_step] /= sys.n_mon;
+  sys.mon.cmy[sys.monitor_step] /= sys.n_mon;
+  sys.mon.cmz[sys.monitor_step] /= sys.n_mon;
 }
 
 void calc_pressure(void) {

@@ -92,13 +92,13 @@ void setup_coords(void) {
   for (i = 0; i < sys.n_mon; i++) {
     part_mon[i].r.x = sys.length/2;
     part_mon[i].r.y = sys.length/2;
-    part_mon[i].r.z = i * sys.r_eq;
+    part_mon[i].r.z = 0.5 * sys.r_eq;
     part_mon[i].ro.x = part_mon[i].r.x;
     part_mon[i].ro.y = part_mon[i].r.y;
     part_mon[i].ro.z = part_mon[i].r.z;
   }
 
-  if (sys.calc_list == 1) {
+  if (sys.calc_list) {
     new_list();
 
     for (i = 0; i < sys.n_dpd; i++) {
@@ -145,3 +145,4 @@ void monitor_mem(void) {
   sys.mon.cmz = (double *) calloc(nsize, sizeof(double));
   sys.mon.bond_length = (double *) calloc(nsize, sizeof(double));
 }
+

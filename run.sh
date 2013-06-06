@@ -16,7 +16,7 @@ echo -e 'n'$nmon'-d'$density'-'$part'' > output"$part".log
 for u in {1..100}; do
 
 	# Generate a random seed and add it to the input file
-	sed -i -e "19d" dpd.inp
+	sed -i -e "20d" dpd.inp
 	./seed.exe >> dpd.inp
 
 	echo 'Run '$u'.' >> output"$part".log
