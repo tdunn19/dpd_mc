@@ -1,6 +1,6 @@
-20          n_mon
+10          n_mon
 3           density
-1500	    volume
+1000	    volume
 1           calc_list
 
 1.0         r_c

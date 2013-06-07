@@ -92,7 +92,7 @@ void setup_coords(void) {
   for (i = 0; i < sys.n_mon; i++) {
     part_mon[i].r.x = sys.length/2;
     part_mon[i].r.y = sys.length/2;
-    part_mon[i].r.z = 0.5 * sys.r_eq;
+    part_mon[i].r.z = 0.5 * i;
     part_mon[i].ro.x = part_mon[i].r.x;
     part_mon[i].ro.y = part_mon[i].r.y;
     part_mon[i].ro.z = part_mon[i].r.z;

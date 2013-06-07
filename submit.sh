@@ -3,9 +3,6 @@
 dir=/home/tdunn/scratch/dpd
 
 # Print out memory usage
-du -h "$dir"/results
-du -h "$dir"/src/temp
-du -h ~/run.sh*
 quota
 
 echo "Abort submitting jobs? (y/n) "
@@ -14,7 +11,33 @@ if [ $yn == y ]; then
     echo 'Aborting..'
     exit
 fi
-echo 'Continuing..'
+
+du -h "$dir"/results
+echo "Delete results? (y/n) "
+read yn
+if [ $yn == y ]; then
+    echo 'Deleting results..'
+    rm -r "$dir"/results
+fi
+
+du -h "$dir"/src/temp
+echo "Delete temp? (y/n) "
+read yn
+if [ $yn == y ]; then
+    echo 'Deleting temp folder..'
+    rm -r "$dir"/src/temp
+fi
+
+du -h ~/run.sh*
+echo "Delete output files? (y/n) "
+read yn
+if [ $yn == y ]; then
+    echo 'Deleting output files..'
+    rm ~/run.sh*
+fi
+
+mkdir "$dir"/src/temp
+mkdir "$dir"/results
 
 # Remove parameter labels in input file
 awk '{$1=""; print $0;}' run.inp > runtemp.inp
@@ -46,7 +69,6 @@ sed -i "s/\(nmon *= *\).*/\1$nmon/" run.sh
 sed -i "s/\(density *= *\).*/\1$density/" run.sh
 
 # Create directories if they don't already exist
-mkdir "$dir"/results/
 mkdir "$dir"/results/n"$nmon"
 mkdir "$dir"/results/n"$nmon"/d"$density"
 mkdir "$dir"/results/n"$nmon"/d"$density"/energy
