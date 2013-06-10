@@ -12,15 +12,17 @@ void initialize(void) {
   init_stats();
   monitor_mem();
   write_log();
-  setup_coords();
+  init_wall();
+  init_part();
 }
 
 void init_param(void) {
   int fact;
   int i, j;
 
-  sys.n_dpd = sys.density * sys.volume;
-  sys.length = pow(sys.volume, 1.0/3.0);
+  sys.volume = sys.length.x * sys.length.y * sys.length.z
+  sys.n_dpd = sys.density_s * sys.volume / 2;
+  sys.n_wall = sys.n_layers * sys.density_w * sys.length * sys.length;
   sys.monitor_step = 0;
   sys.n_accept_dpd = 0;
   sys.n_accept_mon = 0;
@@ -74,8 +76,19 @@ void init_stats(void) {
   sys.stats[10].name = "Bond_length            ";
 }
 
+void init_wall(void) {
+  int i, j, k;
+
+  part_wall = (Particle *) calloc(sys.n_wall, sizeof(Particle));
+
+  for (k = 0; k < n_layers; k++) {
+
+  }
+}
+
 void setup_coords(void) {
   int i;
+  double x, y, z, d;
 
   part_dpd = (Particle *) calloc(sys.n_dpd, sizeof(Particle));
   part_mon = (Particle *) calloc(sys.n_mon, sizeof(Particle));
@@ -87,6 +100,33 @@ void setup_coords(void) {
     part_dpd[i].ro.x = part_dpd[i].r.x;
     part_dpd[i].ro.y = part_dpd[i].r.y;
     part_dpd[i].ro.z = part_dpd[i].r.z;
+  }
+
+  d = pow(sys.density_w, -1.0/3.0);
+  x = 0;
+  y = 0;
+  z = sys.length/2;
+
+  for (i = 0; i < sys.n_wall; i++) {
+    part_wall[i].r.x = x;
+    part_wall[i].r.y = y;
+    part_wall[i].r.z = z;
+
+    printf("wall[%d].r = %lf,%lf,%lf\n",
+      i, part_wall[i].r.x, part_wall[i].r.y, part_wall[i].r.z);
+    x += d;
+
+    // Next row
+    if (x > sys.length) {
+      x = 0;
+      y += d;
+
+      // Next layer
+      if (y > sys.length) {
+        y = 0;
+        z -= d;
+      }
+    }
   }
 
   for (i = 0; i < sys.n_mon; i++) {

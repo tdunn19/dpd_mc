@@ -131,7 +131,7 @@ void calc_pressure(void) {
   }
 
   P.now /= 3*sys.volume;
-  P.now += sys.density*sys.temp;
+  P.now += sys.density_s*sys.temp;
 }
 
 void calc_re(void) {

@@ -51,26 +51,29 @@ typedef struct parameter_type {
     ***hoc,
     ***hoc_copy,
     monitor_step,
-    nsteps,
+    n_steps,
     n_accept_dpd,
     n_accept_mon,
     n_attempt_dpd,
     n_attempt_mon,
     n_cell,
     n_dpd,
+    n_layers,
     n_mon,
-    n_stats;
+    n_stats,
+    n_wall;
 
   double
     a_mm,
     a_ms,
     a_ss,
-    density,
+    a_sw,
+    density_s,
+    density_w,
     dr_max_dpd,
     dr_max_mon,
     energy,
     k_fene,
-    length,
     mc_ratio,
     r_c,
     r_cell,
@@ -80,6 +83,7 @@ typedef struct parameter_type {
     temp,
     volume;
 
+  Vector length;
   Stats *stats;
   Monitor mon;
 } System;
@@ -89,6 +93,7 @@ typedef struct parameter_type {
 
 extern Particle *part_dpd;
 extern Particle *part_mon;
+extern Particle *part_wall;
 extern System sys;
 
 
@@ -109,7 +114,9 @@ extern double  energy_c(Vector);
 extern double  energy_fene(int i, int j);;
 extern void    initialize(void);
 extern void    init_param(void);
+extern void    init_part(void);
 extern void    init_stats(void);
+extern void    init_wall(void);
 extern void    input(void);
 extern int     mod(int, int);
 extern void    monitor_mem(void);
@@ -121,7 +128,6 @@ extern double  ran3(void);
 extern void    random_move_dpd(int i);
 extern void    random_move_mon(int i);
 extern void    sample(void);
-extern void    setup_coords(void);
 extern double  total_energy(void);
 extern void    write_log(void);
 extern void    write_mon(void);

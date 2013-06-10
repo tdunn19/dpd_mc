@@ -10,6 +10,7 @@
 
 Particle *part_dpd;
 Particle *part_mon;
+Particle *part_wall;
 System sys;
 
 
@@ -30,7 +31,9 @@ double  energy_c(Vector);
 double  energy_fene(int i, int j);
 void    initialize(void);
 void    init_param(void);
+void    init_part(void);
 void    init_stats(void);
+void    init_wall(void);
 void    input(void);
 int     mod(int, int);
 void    monitor_mem(void);
@@ -42,7 +45,6 @@ double  ran3(void);
 void    random_move_dpd(int i);
 void    random_move_mon(int i);
 void    sample(void);
-void    setup_coords(void);
 double  total_energy(void);
 void    write_log(void);
 void    write_mon(void);
