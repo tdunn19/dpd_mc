@@ -41,7 +41,7 @@ Edit src/dpd.inp to change parameters. The following is a description of all the
     a_ss - solvent-solvent interaction strength (25.0)
     a_sw - solvent-wall interaction strength (9.01)
 
-    pol_init_z - initial z coordinate of the first monomer (>length_z)
+    pol_init_z - initial z coordinate of the first monomer (>length_z/2)
     pol_init_bl - initial bond length of the polymer (0.5-1.0)
 
     n_steps - number of monte carlo moves to attempt (1000000)
@@ -51,6 +51,8 @@ Edit src/dpd.inp to change parameters. The following is a description of all the
     freq_monitor - monitor the system every x steps (100)
 
     iseed - random seed (change this before every run)
+
+The run.sh and submit.sh scripts were written specifically for ACEnet clusters.
 
 Changelog
 ---------
@@ -62,20 +64,23 @@ Version 3.0 (June 7, 2013)
     * new parameter n_wall: number of wall particles
     * new parameter a_sw: interaction strength between solvent and wall particles
     * new parameter r_wall: distance between wall particles
-* new function init_wall: calculate n_wall, allocates memory for both the wall and the solvent particles in the array part_dpd and initializes the wall particle positions
+* new function init_wall: calculates n_wall, allocates memory for both the wall and the solvent particles in the array part_dpd and initializes the wall particle positions
 * renamed function setup_coords to init_part: initializes monomers and solvent particles
 * new function check_wall: takes in a particle position vector r and checks if it is inside the wall
     * adjusts new parameter wall_overlap accordingly
     * the random move functions will now check for this overlap and immediately reject the move if necessary
 * new function calc_cm: calculates center of mass of the polymer
 * new function calc_rg: calculates radius of gyration of the polymer
-* new input parameter mc_ratio: allows the user to adjust the frequency that monomers or solvent particles are chosen (0=solvent particles only, 1=monomers only)
+* new input parameter mc_ratio: allows the user to adjust the frequency that monomers or solvent particles are chosen
+    * values in the range 0 to 1
+    * 0 = solvent particles moved only
+    * 1 = monomers moved only
 * new input parameter pol_init_z: sets the initial position of the first monomer of the chain
-* new input parameter pol_init_bl: sets initial bond length of the polymer
+* new input parameter pol_init_bl: sets the initial bond length of the polymer
 * split up sys.length into length.x, length.y and length.z to allow variable box length in each dimension
     * split up n_cell and r_cell as well to accomodate this change
 * system volume calculation now subtracts the volume occupied by the wall
-* modified the sample function to find absolute monomer positions (in absences of periodic boundary conditions)
+* modified the sample function to find absolute monomer positions (in the absence of periodic boundary conditions)
     * calc_re, calc_bond_length and calc_cm should now work properly if a periodic boundary is encountered
 * renamed function periodic_bc to periodic_bc_dr: takes a displacement vector dr and adjusts according to periodic boundary conditions
 * new function periodic_bc_r: takes a position vector r and adjusts according to periodic boundary conditions
@@ -162,5 +167,5 @@ To-do list
 ----------
 
 *   add the nanopore
-*   add functionality to completely remove the wall using just input parameters
+*   add functionality to completely remove the wall and/or polymer using just input parameters
 *   instead of using a global 3d array hoc_copy, use the memcpy function

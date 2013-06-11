@@ -27,7 +27,7 @@ for u in {1..5}; do
     mv rg.dat rg"$u".dat
     mv bond_length.dat bond_length"$u".dat
 	
-	mv energy"$u".dat "$dir"/scratch/dpd/n"$nmon"/d"$density"/energy
+    mv energy"$u".dat "$dir"/scratch/dpd/n"$nmon"/d"$density"/energy
 	mv re"$u".dat "$dir"/scratch/dpd/n"$nmon"/d"$density"/re
 	mv rg"$u".dat "$dir"/scratch/dpd/n"$nmon"/d"$density"/rg
 	mv bond_length"$u".dat "$dir"/scratch/dpd/n"$nmon"/d"$density"/bond_length
