@@ -1,7 +1,7 @@
 Monte Carlo DPD
 ===============
 
-This C program uses the Metropolis Monte Carlo method and dissipative particle dynamics (DPD) to investigate quantities like energy and pressure of a system of particles. Future plans are to add a polymer, wall and nanopore.
+This C program uses the Metropolis Monte Carlo method and dissipative particle dynamics (DPD) to investigate conformational averages and energy profiles of a polymer in a solvent.
 
 Installation
 ------------
