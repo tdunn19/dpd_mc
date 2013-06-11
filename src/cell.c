@@ -10,20 +10,20 @@ void new_list(void) {
 
   // Initialize head of chain for each cell.
   // -1 indiciates the end of the chain.
-  for (ix = 0; ix < sys.n_cell; ix++) {
-    for (iy = 0; iy < sys.n_cell; iy++) {
-      for (iz = 0; iz < sys.n_cell; iz++) {
+  for (ix = 0; ix < sys.n_cell.x; ix++) {
+    for (iy = 0; iy < sys.n_cell.y; iy++) {
+      for (iz = 0; iz < sys.n_cell.z; iz++) {
         sys.hoc[ix][iy][iz] = -1;
         sys.hoc_copy[ix][iy][iz] = -1;
       }
     }
   }
 
-  for (i = 0; i < sys.n_dpd; i++) {
+  for (i = 0; i < sys.n_dpd+sys.n_wall; i++) {
     // Determine cell number of the particle
-    ix = (int) part_dpd[i].r.x / sys.r_cell;
-    iy = (int) part_dpd[i].r.y / sys.r_cell;
-    iz = (int) part_dpd[i].r.z / sys.r_cell;
+    ix = (int) part_dpd[i].r.x / sys.r_cell.x;
+    iy = (int) part_dpd[i].r.y / sys.r_cell.y;
+    iz = (int) part_dpd[i].r.z / sys.r_cell.z;
 
     // Link list the head of chain of cell i,j,k
     part_dpd[i].ll = sys.hoc[ix][iy][iz];
@@ -38,13 +38,13 @@ int check_cell(Vector r, Vector ro) {
   // Check for a new head of chain
   int ix, iy, iz, ixo, iyo, izo;
 
-  ix = (int) r.x / sys.r_cell;
-  iy = (int) r.y / sys.r_cell;
-  iz = (int) r.z / sys.r_cell;
+  ix = (int) r.x / sys.r_cell.x;
+  iy = (int) r.y / sys.r_cell.y;
+  iz = (int) r.z / sys.r_cell.z;
 
-  ixo = (int) ro.x / sys.r_cell;
-  iyo = (int) ro.y / sys.r_cell;
-  izo = (int) ro.z / sys.r_cell;
+  ixo = (int) ro.x / sys.r_cell.x;
+  iyo = (int) ro.y / sys.r_cell.y;
+  izo = (int) ro.z / sys.r_cell.z;
 
   if (sys.hoc[ix][iy][iz] != sys.hoc[ixo][iyo][izo]) {
     // The cell has changed
@@ -54,22 +54,42 @@ int check_cell(Vector r, Vector ro) {
   }
 }
 
-void periodic_bc(Vector *dr) {
-  if ((*dr).x > sys.length/2) {
-    (*dr).x -= sys.length;
-  } else if ((*dr).x < -sys.length/2) {
-    (*dr).x += sys.length;
+void periodic_bc_r(Vector *r) {
+  if ((*r).x > sys.length.x) {
+    (*r).x -= sys.length.x;
+  } else if ((*r).x < 0) {
+    (*r).x += sys.length.x;
   }
 
-  if ((*dr).y > sys.length/2) {
-    (*dr).y -= sys.length;
-  } else if ((*dr).y < -sys.length/2) {
-    (*dr).y += sys.length;
+  if ((*r).y > sys.length.y) {
+    (*r).y -= sys.length.y;
+  } else if ((*r).y < 0) {
+    (*r).y += sys.length.y;
   }
 
-  if ((*dr).z > sys.length/2) {
-    (*dr).z -= sys.length;
-  } else if ((*dr).z < -sys.length/2) {
-    (*dr).z += sys.length;
+  if ((*r).z > sys.length.z) {
+    (*r).z -= sys.length.z;
+  } else if ((*r).z < 0) {
+    (*r).z += sys.length.z;
+  }
+}
+
+void periodic_bc_dr(Vector *dr) {
+  if ((*dr).x > sys.length.x/2) {
+    (*dr).x -= sys.length.x;
+  } else if ((*dr).x < -sys.length.x/2) {
+    (*dr).x += sys.length.x;
+  }
+
+  if ((*dr).y > sys.length.y/2) {
+    (*dr).y -= sys.length.y;
+  } else if ((*dr).y < -sys.length.y/2) {
+    (*dr).y += sys.length.y;
+  }
+
+  if ((*dr).z > sys.length.z/2) {
+    (*dr).z -= sys.length.z;
+  } else if ((*dr).z < -sys.length.z/2) {
+    (*dr).z += sys.length.z;
   }
 }

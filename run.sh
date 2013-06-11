@@ -2,41 +2,41 @@
 
 nmon=10
 density=1
-part=1
+job=1
 
-dir=/home/tdunn/scratch/dpd
+dir=/home/tdunn
 
-cd "$dir"/src/temp/'n'$nmon-'d'$density'-'$part''
+cd "$dir"/dpd/src/temp/'n'$nmon-'d'$density'-'$job''
 
 make opt3
 gcc -lm -o3 -o seed.exe seed.c 
 
-echo -e 'n'$nmon'-d'$density'-'$part'' > output"$part".log
+echo -e 'n'$nmon'-d'$density'-'$job'' > output"$job".log
 
-for u in {1..100}; do
+for u in {1..5}; do
 
 	# Generate a random seed and add it to the input file
 	sed -i -e "20d" dpd.inp
 	./seed.exe >> dpd.inp
 
-	echo 'Run '$u'.' >> output"$part".log
-	./dpd.run >> output"$part".log
+	echo 'Run '$u'.' >> output"$job".log
+	./dpd.run >> output"$job".log
 
     mv energy.dat energy"$u".dat
     mv re.dat re"$u".dat
     mv rg.dat rg"$u".dat
     mv bond_length.dat bond_length"$u".dat
 	
-	mv energy"$u".dat "$dir"/results/n"$nmon"/d"$density"/energy
-	mv re"$u".dat "$dir"/results/n"$nmon"/d"$density"/re
-	mv rg"$u".dat "$dir"/results/n"$nmon"/d"$density"/rg
-	mv bond_length"$u".dat "$dir"/results/n"$nmon"/d"$density"/bond_length
+	mv energy"$u".dat "$dir"/scratch/dpd/n"$nmon"/d"$density"/energy
+	mv re"$u".dat "$dir"/scratch/dpd/n"$nmon"/d"$density"/re
+	mv rg"$u".dat "$dir"/scratch/dpd/n"$nmon"/d"$density"/rg
+	mv bond_length"$u".dat "$dir"/scratch/dpd/n"$nmon"/d"$density"/bond_length
 
 	echo 'Done '$u'.'
 done
 
-cp dpd.inp dpd"$part".inp 
-mv dpd"$part".inp "$dir"/results/n"$nmon"/d"$density"/input
+cp dpd.inp dpd"$job".inp 
+mv dpd"$job".inp "$dir"/scratch/dpd/n"$nmon"/d"$density"/input
 
-echo 'Done n'$nmon'-d'$density'-'$part'' >> output"$part".log
-mv output"$part".log "$dir"/results/n"$nmon"/d"$density"/output
+echo 'Done n'$nmon'-d'$density'-'$job'' >> output"$job".log
+mv output"$job".log "$dir"/scratch/dpd/n"$nmon"/d"$density"/output

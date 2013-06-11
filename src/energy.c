@@ -7,21 +7,22 @@
 
 double calc_energy_dpd(int i) {
   int ix, iy, iz, jx, jy, jz, j, l, m, n;
-  double E_ss = 0, E_ms = 0;
+  double E_ss = 0, E_ms = 0, E_sw = 0;
   Vector dr;
-  // Determine cell number of particle i
-  ix = (int) part_dpd[i].r.x / sys.r_cell;
-  iy = (int) part_dpd[i].r.y / sys.r_cell;
-  iz = (int) part_dpd[i].r.z / sys.r_cell;
 
-  // Solvent-solvent interaction
+  // Determine cell number of particle i
+  ix = (int) part_dpd[i].r.x / sys.r_cell.x;
+  iy = (int) part_dpd[i].r.y / sys.r_cell.y;
+  iz = (int) part_dpd[i].r.z / sys.r_cell.z;
+
+  // DPD-DPD interaction
   for (l = -1; l <= 1; l++) {
     for (m = -1; m <= 1; m++) {
       for (n = -1; n <= 1; n++) {
         // Determine nearest neighbor cell
-        jx = mod(ix+l, sys.n_cell);
-        jy = mod(iy+m, sys.n_cell);
-        jz = mod(iz+n, sys.n_cell);
+        jx = mod(ix+l, sys.n_cell.x);
+        jy = mod(iy+m, sys.n_cell.y);
+        jz = mod(iz+n, sys.n_cell.y);
 
         // First particle in the chain
         j = sys.hoc[jx][jy][jz];
@@ -29,7 +30,13 @@ double calc_energy_dpd(int i) {
         while (j != -1) {
           if (i != j) {
             dr = vdist(part_dpd[i].r, part_dpd[j].r);
-            E_ss += energy_c(dr);
+            if (j < sys.n_dpd) {
+              // Solvent-wall interaction
+              E_ss += energy_c(dr);
+            } else {
+              // Solvent-wall interaction
+              E_sw += energy_c(dr);
+            }
           }
           // Next particle in the chain
           j = part_dpd[j].ll;
@@ -38,6 +45,7 @@ double calc_energy_dpd(int i) {
     }
   }
   E_ss *= sys.a_ss;
+  E_sw *= sys.a_sw;
 
   // Solvent-monomer interaction
   for (j = 0; j < sys.n_mon; j++) {
@@ -46,13 +54,13 @@ double calc_energy_dpd(int i) {
   }
   E_ms *= sys.a_ms;
 
-  return E_ss + E_ms;
+  return E_ss + E_ms + E_sw;
 }
 
 
 double calc_energy_mon(int i) {
   int ix, iy, iz, jx, jy, jz, j, l, m, n;
-  double E_ms = 0, E_mm = 0, E_fene = 0;;
+  double E_ms = 0, E_mm = 0, E_fene = 0, E_mw = 0;
   Vector dr;
 
   // If not the first monomer in the chain
@@ -68,26 +76,31 @@ double calc_energy_mon(int i) {
   // Check for bond break
   if (!sys.bond_break) {
     // Determine cell number of monomer i
-    ix = (int) part_mon[i].r.x / sys.r_cell;
-    iy = (int) part_mon[i].r.y / sys.r_cell;
-    iz = (int) part_mon[i].r.z / sys.r_cell;
+    ix = (int) part_mon[i].r.x / sys.r_cell.x;
+    iy = (int) part_mon[i].r.y / sys.r_cell.y;
+    iz = (int) part_mon[i].r.z / sys.r_cell.z;
 
-    // Monomer-solvent interaction
+    // Monomer-DPD interaction
     for (l = -1; l <= 1; l++) {
       for (m = -1; m <= 1; m++) {
         for (n = -1; n <= 1; n++) {
           // Determine nearest neighbor cell
-          jx = mod(ix+l, sys.n_cell);
-          jy = mod(iy+m, sys.n_cell);
-          jz = mod(iz+n, sys.n_cell);
+          jx = mod(ix+l, sys.n_cell.x);
+          jy = mod(iy+m, sys.n_cell.y);
+          jz = mod(iz+n, sys.n_cell.z);
 
           // First particle in the chain
           j = sys.hoc[jx][jy][jz];
 
           while (j != -1) {
             dr = vdist(part_mon[i].r, part_dpd[j].r);
-            E_ms += energy_c(dr);
-
+            if (j < sys.n_dpd) {
+              // Monomer-solvent interaction
+              E_ms += energy_c(dr);
+            } else {
+              // Monomer-wall interaction
+              E_mw += energy_c(dr);
+            }
             // Next particle in the chain
             j = part_dpd[j].ll;
           }
@@ -95,6 +108,7 @@ double calc_energy_mon(int i) {
       }
     }
     E_ms *= sys.a_ms;
+    E_mw *= sys.a_sw;
 
     // Monomer-monomer interaction
     for (j = 0; j < sys.n_mon; j++) {
@@ -111,7 +125,7 @@ double calc_energy_mon(int i) {
 
 void calc_energy_brute(void) {
   int i, j;
-  double E_mm, E_ms, E_ss, E_fene;
+  double E_mm, E_ms, E_ss, E_fene, E_mw, E_sw;
   Vector dr;
 
   // Monomer energies
@@ -119,6 +133,7 @@ void calc_energy_brute(void) {
     E_mm = 0;
     E_ms = 0;
     E_fene = 0;
+    E_mw = 0;
 
     part_mon[i].Eo = part_mon[i].E;
 
@@ -146,13 +161,20 @@ void calc_energy_brute(void) {
     }
     E_ms *= sys.a_ms;
 
-    part_mon[i].E = E_fene + E_mm + E_ms;
+    for (j = sys.n_dpd; j < sys.n_dpd+sys.n_wall; j++) {
+        dr = vdist(part_mon[i].r, part_dpd[j].r);
+        E_mw += energy_c(dr);
+    }
+    E_mw *= sys.a_sw;
+
+    part_mon[i].E = E_fene + E_mm + E_ms + E_mw;
   }
 
   // DPD particle energies
   for (i = 0; i < sys.n_dpd; i++) {
     E_ss = 0;
     E_ms = 0;
+    E_sw = 0;
 
     part_dpd[i].Eo = part_dpd[i].E;
 
@@ -164,20 +186,26 @@ void calc_energy_brute(void) {
     }
     E_ss *= sys.a_ss;
 
+    for (j = sys.n_dpd; j < sys.n_dpd+sys.n_wall; j++) {
+      dr = vdist(part_dpd[i].r, part_dpd[j].r);
+      E_sw += energy_c(dr);
+    }
+    E_sw *= sys.a_sw;
+
     for (j = 0; j < sys.n_mon; j++) {
       dr = vdist(part_dpd[i].r, part_mon[j].r);
       E_ms += energy_c(dr);
     }
     E_ms *= sys.a_ms;
 
-    part_dpd[i].E = E_ss + E_ms;
+    part_dpd[i].E = E_ss + E_ms + E_sw;
   }
 }
 
 double energy_c(Vector dr) {
   double r_ij, E_ij;
 
-  periodic_bc(&dr);
+  periodic_bc_dr(&dr);
 
   r_ij = vmag(dr);
 
@@ -196,7 +224,7 @@ double energy_fene(i, j) {
   Vector dr;
 
   dr = vdist(part_mon[i].r, part_mon[j].r);
-  periodic_bc(&dr);
+  periodic_bc_dr(&dr);
   r_ij = vmag(dr);
 
   if (r_ij <= sys.r_max) {

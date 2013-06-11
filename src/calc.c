@@ -19,7 +19,7 @@ void sample(void) {
   // Get an absolute position of the monomers without periodic boundaries
   for (i = 1; i < sys.n_mon; i++) {
     dr = vdist(part_mon[i].r, part_mon[i-1].r);
-    periodic_bc(&dr);
+    periodic_bc_dr(&dr);
 
     part_mon[i].r.x = part_mon[i-1].r.x + dr.x;
     part_mon[i].r.y = part_mon[i-1].r.y + dr.y;
@@ -88,7 +88,7 @@ void calc_pressure(void) {
   for (i = 0; i < sys.n_dpd-1; i++) {
     for (j = i+1; j < sys.n_dpd; j++) {
       dr = vdist(part_dpd[i].r, part_dpd[j].r);
-      periodic_bc(&dr);
+      periodic_bc_dr(&dr);
       r_ij = vmag(dr);
 
       // Check for cutoff distance
@@ -102,7 +102,7 @@ void calc_pressure(void) {
     // Contribution from monomer-monomer forces
     for (j = i+1; j < sys.n_mon; j++) {
       dr = vdist(part_mon[i].r, part_mon[j].r);
-      periodic_bc(&dr);
+      periodic_bc_dr(&dr);
       r_ij = vmag(dr);
 
       // Conservative force
@@ -120,12 +120,39 @@ void calc_pressure(void) {
     // Contribution from monomer-solvent forces
     for (j = 0; j < sys.n_dpd; j++) {
       dr = vdist(part_mon[i].r, part_dpd[j].r);
-      periodic_bc(&dr);
+      periodic_bc_dr(&dr);
 
       r_ij = vmag(dr);
 
       if (r_ij < sys.r_c) {
         P.now += sys.a_ms*r_ij*(1-r_ij);
+      }
+    }
+  }
+
+  // Contribution from wall forces
+  for (i = sys.n_dpd; i < sys.n_dpd+sys.n_wall; i++) {
+    // Wall-solvent interaction
+    for (j = 0; j < sys.n_dpd; j++) {
+      dr = vdist(part_dpd[i].r, part_dpd[j].r);
+      periodic_bc_dr(&dr);
+
+      r_ij = vmag(dr);
+
+      if (r_ij < sys.r_c) {
+        P.now += sys.a_sw*r_ij*(1-r_ij);
+      }
+    }
+
+    // Wall-monomer interaction
+    for (j = 0; j < sys.n_mon; j++) {
+      dr = vdist(part_dpd[i].r, part_mon[j].r);
+      periodic_bc_dr(&dr);
+
+      r_ij = vmag(dr);
+
+      if (r_ij < sys.r_c) {
+        P.now += sys.a_sw*r_ij*(1-r_ij);
       }
     }
   }
@@ -192,7 +219,7 @@ void check_bond(int i) {
   // If not the first monomer in the chain
   if (i != 0) {
     dr = vdist(part_mon[i].r, part_mon[i-1].r);
-    periodic_bc(&dr);
+    periodic_bc_dr(&dr);
     r_ij = vmag(dr);
 
     if (r_ij > sys.r_max) {
@@ -203,11 +230,21 @@ void check_bond(int i) {
   // If not the last monomer in the chain
   if (i != (sys.n_mon - 1)) {
     dr = vdist(part_mon[i].r, part_mon[i+1].r);
-    periodic_bc(&dr);
+    periodic_bc_dr(&dr);
     r_ij = vmag(dr);
 
     if (r_ij > sys.r_max) {
       sys.bond_break = 1;
     }
+  }
+}
+
+void check_wall(Vector r) {
+  int i;
+
+  sys.wall_overlap = 0;
+
+  if (r.z > sys.wall_min_z && r.z < sys.wall_max_z) {
+    sys.wall_overlap = 1;
   }
 }

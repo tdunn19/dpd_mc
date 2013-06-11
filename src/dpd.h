@@ -21,7 +21,7 @@ typedef struct vector_type {
 } Vector;
 
 typedef struct ivector_type {
-  int ix, iy, iz;
+  int x, y, z;
 } Ivector;
 
 typedef struct particle_type {
@@ -56,12 +56,12 @@ typedef struct parameter_type {
     n_accept_mon,
     n_attempt_dpd,
     n_attempt_mon,
-    n_cell,
     n_dpd,
     n_layers,
     n_mon,
     n_stats,
-    n_wall;
+    n_wall,
+    wall_overlap;
 
   double
     a_mm,
@@ -75,15 +75,20 @@ typedef struct parameter_type {
     energy,
     k_fene,
     mc_ratio,
+    pol_init_bl,
+    pol_init_z,
     r_c,
-    r_cell,
     r_eq,
     r_max,
+    r_wall,
     r_0,
     temp,
-    volume;
+    volume,
+    wall_max_z,
+    wall_min_z;
 
-  Vector length;
+  Ivector n_cell;
+  Vector length, r_cell;
   Stats *stats;
   Monitor mon;
 } System;
@@ -93,7 +98,6 @@ typedef struct parameter_type {
 
 extern Particle *part_dpd;
 extern Particle *part_mon;
-extern Particle *part_wall;
 extern System sys;
 
 
@@ -110,6 +114,7 @@ extern void    calc_re(void);
 extern void    calc_rg(void);
 extern void    check_bond(int i);
 extern int     check_cell(Vector, Vector);
+extern void    check_wall(Vector);
 extern double  energy_c(Vector);
 extern double  energy_fene(int i, int j);;
 extern void    initialize(void);
@@ -122,7 +127,8 @@ extern int     mod(int, int);
 extern void    monitor_mem(void);
 extern void    monte_carlo(void);
 extern void    new_list(void);
-extern void    periodic_bc(Vector *);
+extern void    periodic_bc_dr(Vector *);
+extern void    periodic_bc_r(Vector *);
 extern void    print_stats(void);
 extern double  ran3(void);
 extern void    random_move_dpd(int i);

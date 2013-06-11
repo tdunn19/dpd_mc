@@ -4,7 +4,7 @@
 
 10.0        length_x
 10.0        length_y
-10.0        length_z
+15.0        length_z
 
 3           density_w
 2           n_layers
@@ -18,7 +18,10 @@
 25.0        a_ss
 9.01        a_sw
 
-1000     nsteps
+8.0         pol_init_z
+0.5         pol_init_bl
+
+1000     n_steps
 0.5         mc_ratio(1=monomers_only,0=dpd_only)
 1.0         temp
 100         freq_sample

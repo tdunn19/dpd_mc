@@ -15,6 +15,7 @@ void input(void) {
     fscanf(fp, "%lf%*s", &sys.length.y);
     fscanf(fp, "%lf%*s", &sys.length.z);
     fscanf(fp, "%lf%*s", &sys.density_w);
+    fscanf(fp, "%d%*s", &sys.n_layers);
     fscanf(fp, "%lf%*s", &sys.r_c);
     fscanf(fp, "%lf%*s", &sys.dr_max_dpd);
     fscanf(fp, "%lf%*s", &sys.dr_max_mon);
@@ -22,7 +23,8 @@ void input(void) {
     fscanf(fp, "%lf%*s", &sys.a_ms);
     fscanf(fp, "%lf%*s", &sys.a_ss);
     fscanf(fp, "%lf%*s", &sys.a_sw);
-    fscanf(fp, "%d%*s", &sys.n_layers);
+    fscanf(fp, "%lf%*s", &sys.pol_init_z);
+    fscanf(fp, "%lf%*s", &sys.pol_init_bl);
     fscanf(fp, "%d%*s", &sys.n_steps);
     fscanf(fp, "%lf%*s", &sys.mc_ratio);
     fscanf(fp, "%lf%*s", &sys.temp);
@@ -30,7 +32,6 @@ void input(void) {
     fscanf(fp, "%d%*s", &sys.freq_monitor);
     fscanf(fp, "%d%*s", &sys.iseed);
   }
-
   fclose(fp);
 }
 
@@ -55,6 +56,8 @@ void write_log(void) {
   printf("a_ms        \t\t\t%10.5lf\n", sys.a_ms);
   printf("a_ss        \t\t\t%10.5lf\n", sys.a_ss);
   printf("a_sw        \t\t\t%10.5lf\n\n", sys.a_sw);
+  printf("pol_init_z  \t\t\t%10.5lf\n", sys.pol_init_z);
+  printf("pol_init_bl \t\t\t%10.5lf\n\n", sys.pol_init_bl);
   printf("nsteps      \t\t\t%10d\n", sys.n_steps);
   printf("mc_ratio    \t\t\t%10.5lf\n", sys.mc_ratio);
   printf("temp        \t\t\t%10.5lf\n", sys.temp);

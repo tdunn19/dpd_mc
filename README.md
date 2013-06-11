@@ -19,10 +19,69 @@ To compile and run:
 	make opt3
 	./dpd.run
 
-Edit src/dpd.inp to change parameters.
+Edit src/dpd.inp to change parameters. The following is a description of all the input parameters as well as typical values in brackets:
+
+    n_mon - the number of monomers
+    density_s - the solvent density (3)
+    calc_list - 1 to use cell list method, 0 to use brute force method of calculation
+
+    length_x - system box length in the x (10)
+    length_y - in the y (10)
+    length_z - in the z (long enough to fit the polymer)
+
+    density_w - density of wall particles (3)
+    n_layers - number of wall layers (2)
+
+    r_c - cutoff radius of particle interaction (1.0)
+    dr_max_dpd - max displacement of a dpd monte carlo move (0.2)
+    dr_max_mon - max displacement of a monomer monte carlo move (0.1)
+
+    a_mm - monomer-monomer interaction strength (25.0)
+    a_ms - monomer-solvent interaction strength (15.0)
+    a_ss - solvent-solvent interaction strength (25.0)
+    a_sw - solvent-wall interaction strength (9.01)
+
+    pol_init_z - initial z coordinate of the first monomer (>length_z)
+    pol_init_bl - initial bond length of the polymer (0.5-1.0)
+
+    n_steps - number of monte carlo moves to attempt (1000000)
+    mc_ratio - percentage of mc moves that will choose a monomer over a solvent particle (0.5)
+    temp - system temperature (1.0)
+    freq_sample - sample the system every x steps (100)
+    freq_monitor - monitor the system every x steps (100)
+
+    iseed - random seed (change this before every run)
 
 Changelog
 ---------
+
+Version 3.0 (June 7, 2013)
+* the wall has been added
+    * new input parameter density_w: set density of wall particles
+    * new input parameter n_layers: set number of wall layers
+    * new parameter n_wall: number of wall particles
+    * new parameter a_sw: interaction strength between solvent and wall particles
+    * new parameter r_wall: distance between wall particles
+* new function init_wall: calculate n_wall, allocates memory for both the wall and the solvent particles in the array part_dpd and initializes the wall particle positions
+* renamed function setup_coords to init_part: initializes monomers and solvent particles
+* new function check_wall: takes in a particle position vector r and checks if it is inside the wall
+    * adjusts new parameter wall_overlap accordingly
+    * the random move functions will now check for this overlap and immediately reject the move if necessary
+* new function calc_cm: calculates center of mass of the polymer
+* new function calc_rg: calculates radius of gyration of the polymer
+* new input parameter mc_ratio: allows the user to adjust the frequency that monomers or solvent particles are chosen (0=solvent particles only, 1=monomers only)
+* new input parameter pol_init_z: sets the initial position of the first monomer of the chain
+* new input parameter pol_init_bl: sets initial bond length of the polymer
+* split up sys.length into length.x, length.y and length.z to allow variable box length in each dimension
+    * split up n_cell and r_cell as well to accomodate this change
+* system volume calculation now subtracts the volume occupied by the wall
+* modified the sample function to find absolute monomer positions (in absences of periodic boundary conditions)
+    * calc_re, calc_bond_length and calc_cm should now work properly if a periodic boundary is encountered
+* renamed function periodic_bc to periodic_bc_dr: takes a displacement vector dr and adjusts according to periodic boundary conditions
+* new function periodic_bc_r: takes a position vector r and adjusts according to periodic boundary conditions
+* calc_pressure now accounts for wall-solvent and wall-monomer ineractions
+* changed functions in init.c to store initial positions in part.r as well as part.ro
+* removed a redundant call of new_list in main.c, as it is called in init.c already
 
 Version 2.3 (May 31, 2013)
 *   bug fixes
@@ -102,9 +161,6 @@ Version 1.0 (May 20, 2013)
 To-do list
 ----------
 
-*   add the wall
-*   increase the probability of choosing a monomer over a dpd particle
-*   get Re calculation working with periodic boundary conditions
-*   add Rg sample function
+*   add the nanopore
+*   add functionality to completely remove the wall using just input parameters
 *   instead of using a global 3d array hoc_copy, use the memcpy function
-*   add an input parameter to vary the initial distance between monomers

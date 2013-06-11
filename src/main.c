@@ -10,7 +10,6 @@
 
 Particle *part_dpd;
 Particle *part_mon;
-Particle *part_wall;
 System sys;
 
 
@@ -27,6 +26,7 @@ void    calc_re(void);
 void    calc_rg(void);
 void    check_bond(int i);
 int     check_cell(Vector, Vector);
+void    check_wall(Vector);
 double  energy_c(Vector);
 double  energy_fene(int i, int j);
 void    initialize(void);
@@ -60,7 +60,7 @@ main() {
   initialize();
   srand(time(NULL));
 
-  for (i = 0; i <= sys.nsteps; i++) {
+  for (i = 0; i <= sys.n_steps; i++) {
     monte_carlo();
     if (i % sys.freq_sample == 0) sample();
     if (i % sys.freq_monitor == 0) monitor();
