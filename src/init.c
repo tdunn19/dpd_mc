@@ -31,7 +31,7 @@ void init_param(void) {
 
   sys.volume = sys.length.x * sys.length.y * sys.length.z;
   // Account for the volume occupied by the wall
-  sys.volume -= sys.length.x * sys.length.y * sys.n_layers * sys.r_wall;
+  sys.volume -= sys.length.x * sys.length.y * (sys.n_layers - 1) * sys.r_wall;
 
   sys.n_dpd = sys.density_s * sys.volume;
 
@@ -111,7 +111,7 @@ void init_wall(void) {
   }
 
   sys.wall_max_z = sys.length.z / 2;
-  sys.wall_min_z = sys.length.z / 2 - k * sys.r_wall;
+  sys.wall_min_z = sys.length.z / 2 - (k-1) * sys.r_wall;
 }
 
 void init_part(void) {
@@ -130,7 +130,7 @@ void init_part(void) {
 
       // Check for wall overlap
       check_wall(part_dpd[i].r);
-    } while (!sys.wall_overlap);
+    } while (sys.wall_overlap);
   }
 
   part_mon = (Particle *) calloc(sys.n_mon, sizeof(Particle));

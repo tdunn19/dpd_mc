@@ -21,10 +21,10 @@
 8.0         pol_init_z
 0.5         pol_init_bl
 
-1000     n_steps
+10000     n_steps
 0.5         mc_ratio(1=monomers_only,0=dpd_only)
 1.0         temp
 100         freq_sample
 100         freq_monitor
 
-825545134   iseed
+825525134   iseed

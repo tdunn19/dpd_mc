@@ -44,7 +44,7 @@ void write_log(void) {
   printf("calc_list   \t\t\t%10d\n\n", sys.calc_list);
   printf("length_x    \t\t\t%10.5lf\n", sys.length.x);
   printf("length_y    \t\t\t%10.5lf\n", sys.length.y);
-  printf("length_z    \t\t\t%10.5lf\n\n", sys.length.z);
+  printf("length_z    \t\t\t%10.5lf\n", sys.length.z);
   printf("volume      \t\t\t%10.5lf\n\n", sys.volume);
   printf("density_w   \t\t\t%10.5lf\n", sys.density_w);
   printf("n_layers    \t\t\t%10d\n", sys.n_layers);
