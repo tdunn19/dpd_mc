@@ -66,11 +66,11 @@ main() {
     if (i % sys.freq_monitor == 0) monitor();
   }
 
-  end = clock();
   final_stats();
   print_stats();
   write_mon();
 
+  end = clock();
   run_time = (double) (end - begin) / CLOCKS_PER_SEC;
   printf("\nRun time of %lf seconds.\n\n", run_time);
 }
