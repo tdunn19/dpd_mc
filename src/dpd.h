@@ -51,16 +51,19 @@ typedef struct parameter_type {
     ***hoc,
     ***hoc_copy,
     monitor_step,
-    n_steps,
-    n_accept_dpd,
     n_accept_mon,
-    n_attempt_dpd,
+    n_accept_solvent,
     n_attempt_mon,
+    n_attempt_solvent,
     n_dpd,
     n_layers,
     n_mon,
+    n_pore,
+    n_solvent,
     n_stats,
+    n_steps,
     n_wall,
+    pore_overlap,
     wall_overlap;
 
   double
@@ -77,18 +80,20 @@ typedef struct parameter_type {
     mc_ratio,
     pol_init_bl,
     pol_init_z,
+    pore_radius,
+    pore_volume,
     r_c,
     r_eq,
     r_max,
+    r_pore,
     r_wall,
     r_0,
     temp,
     volume,
-    wall_max_z,
-    wall_min_z;
+    wall_volume;
 
-  Ivector n_cell;
-  Vector length, r_cell;
+  Ivector n_cell_1d, n_pore_1d, n_wall_1d;
+  Vector length, pore_max, pore_min, r_cell, wall_max, wall_min;
   Stats *stats;
   Monitor mon;
 } System;
@@ -114,25 +119,27 @@ extern void    calc_re(void);
 extern void    calc_rg(void);
 extern void    check_bond(int i);
 extern int     check_cell(Vector, Vector);
+extern void    check_pore(Vector);
 extern void    check_wall(Vector);
 extern double  energy_c(Vector);
 extern double  energy_fene(int i, int j);;
 extern void    initialize(void);
+extern void    init_monitor(void);
 extern void    init_param(void);
 extern void    init_part(void);
+extern void    init_pore(void);
 extern void    init_stats(void);
 extern void    init_wall(void);
 extern void    input(void);
 extern int     mod(int, int);
-extern void    monitor_mem(void);
 extern void    monte_carlo(void);
+extern void    move_monomer(int i);
+extern void    move_solvent(int i);
 extern void    new_list(void);
 extern void    periodic_bc_dr(Vector *);
 extern void    periodic_bc_r(Vector *);
 extern void    print_stats(void);
 extern double  ran3(void);
-extern void    random_move_dpd(int i);
-extern void    random_move_mon(int i);
 extern void    sample(void);
 extern double  total_energy(void);
 extern void    write_log(void);

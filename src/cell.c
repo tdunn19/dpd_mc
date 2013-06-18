@@ -10,20 +10,20 @@ void new_list(void) {
 
   // Initialize head of chain for each cell.
   // -1 indiciates the end of the chain.
-  for (ix = 0; ix < sys.n_cell.x; ix++) {
-    for (iy = 0; iy < sys.n_cell.y; iy++) {
-      for (iz = 0; iz < sys.n_cell.z; iz++) {
+  for (ix = 0; ix < sys.n_cell_1d.x; ix++) {
+    for (iy = 0; iy < sys.n_cell_1d.y; iy++) {
+      for (iz = 0; iz < sys.n_cell_1d.z; iz++) {
         sys.hoc[ix][iy][iz] = -1;
         sys.hoc_copy[ix][iy][iz] = -1;
       }
     }
   }
 
-  for (i = 0; i < sys.n_dpd+sys.n_wall; i++) {
+  for (i = 0; i < sys.n_dpd; i++) {
     // Determine cell number of the particle
-    ix = (int) part_dpd[i].r.x / sys.r_cell.x;
-    iy = (int) part_dpd[i].r.y / sys.r_cell.y;
-    iz = (int) part_dpd[i].r.z / sys.r_cell.z;
+    ix = (int) (part_dpd[i].r.x / sys.r_cell.x);
+    iy = (int) (part_dpd[i].r.y / sys.r_cell.y);
+    iz = (int) (part_dpd[i].r.z / sys.r_cell.z);
 
     // Link list the head of chain of cell i,j,k
     part_dpd[i].ll = sys.hoc[ix][iy][iz];
@@ -38,13 +38,13 @@ int check_cell(Vector r, Vector ro) {
   // Check for a new head of chain
   int ix, iy, iz, ixo, iyo, izo;
 
-  ix = (int) r.x / sys.r_cell.x;
-  iy = (int) r.y / sys.r_cell.y;
-  iz = (int) r.z / sys.r_cell.z;
+  ix = (int) (r.x / sys.r_cell.x);
+  iy = (int) (r.y / sys.r_cell.y);
+  iz = (int) (r.z / sys.r_cell.z);
 
-  ixo = (int) ro.x / sys.r_cell.x;
-  iyo = (int) ro.y / sys.r_cell.y;
-  izo = (int) ro.z / sys.r_cell.z;
+  ixo = (int) (ro.x / sys.r_cell.x);
+  iyo = (int) (ro.y / sys.r_cell.y);
+  izo = (int) (ro.z / sys.r_cell.z);
 
   if (sys.hoc[ix][iy][iz] != sys.hoc[ixo][iyo][izo]) {
     // The cell has changed

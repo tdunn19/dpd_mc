@@ -16,6 +16,7 @@ void input(void) {
     fscanf(fp, "%lf%*s", &sys.length.z);
     fscanf(fp, "%lf%*s", &sys.density_w);
     fscanf(fp, "%d%*s", &sys.n_layers);
+    fscanf(fp, "%lf%*s", &sys.pore_radius);
     fscanf(fp, "%lf%*s", &sys.r_c);
     fscanf(fp, "%lf%*s", &sys.dr_max_dpd);
     fscanf(fp, "%lf%*s", &sys.dr_max_mon);
@@ -40,7 +41,7 @@ void write_log(void) {
   printf("\n\n");
   printf("n_mon       \t\t\t%10d\n", sys.n_mon);
   printf("density_s   \t\t\t%10.5lf\n", sys.density_s);
-  printf("n_dpd       \t\t\t%10d\n", sys.n_dpd);
+  printf("n_solvent   \t\t\t%10d\n", sys.n_solvent);
   printf("calc_list   \t\t\t%10d\n\n", sys.calc_list);
   printf("length_x    \t\t\t%10.5lf\n", sys.length.x);
   printf("length_y    \t\t\t%10.5lf\n", sys.length.y);
@@ -48,7 +49,13 @@ void write_log(void) {
   printf("volume      \t\t\t%10.5lf\n\n", sys.volume);
   printf("density_w   \t\t\t%10.5lf\n", sys.density_w);
   printf("n_layers    \t\t\t%10d\n", sys.n_layers);
-  printf("n_wall      \t\t\t%10d\n\n", sys.n_wall);
+  printf("r_wall      \t\t\t%10.5lf\n", sys.r_wall);
+  printf("n_wall      \t\t\t%10d\n", sys.n_wall);
+  printf("wall_volume \t\t\t%10.5lf\n\n", sys.wall_volume);
+  printf("pore_radius \t\t\t%10.5lf\n", sys.pore_radius);
+  printf("r_pore      \t\t\t%10.5lf\n", sys.r_pore);
+  printf("n_pore      \t\t\t%10d\n", sys.n_pore);
+  printf("pore_volume \t\t\t%10.5lf\n\n", sys.pore_volume);
   printf("r_c         \t\t\t%10.5lf\n", sys.r_c);
   printf("dr_max_dpd  \t\t\t%10.5lf\n", sys.dr_max_dpd);
   printf("dr_max_mon  \t\t\t%10.5lf\n\n", sys.dr_max_mon);
@@ -89,14 +96,14 @@ void print_stats(void) {
       sys.stats[i].name, sys.stats[i].sum, sys.stats[i].err);
   }
 
-  perc_dpd = (double) sys.n_accept_dpd / sys.n_attempt_dpd;
+  perc_dpd = (double) sys.n_accept_solvent / sys.n_attempt_solvent;
   perc_mon = (double) sys.n_accept_mon / sys.n_attempt_mon;
 
   printf("\n\nSelection and acceptance stats\n\n");
   printf("Particle    Moves    Accepted  Percent\n");
   printf("--------  ---------  --------  -------\n");
-  printf("     DPD  %9d%10d%9.2lf\n",
-    sys.n_attempt_dpd, sys.n_accept_dpd, perc_dpd);
+  printf(" Solvent  %9d%10d%9.2lf\n",
+    sys.n_attempt_solvent, sys.n_accept_solvent, perc_dpd);
   printf(" Monomer  %9d%10d%9.2lf\n",
     sys.n_attempt_mon, sys.n_accept_mon, perc_mon);
 }

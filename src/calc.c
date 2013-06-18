@@ -85,8 +85,8 @@ void calc_pressure(void) {
   Vector dr;
 
   // Contribution from solvent-solvent forces
-  for (i = 0; i < sys.n_dpd-1; i++) {
-    for (j = i+1; j < sys.n_dpd; j++) {
+  for (i = 0; i < sys.n_solvent-1; i++) {
+    for (j = i+1; j < sys.n_solvent; j++) {
       dr = vdist(part_dpd[i].r, part_dpd[j].r);
       periodic_bc_dr(&dr);
       r_ij = vmag(dr);
@@ -118,7 +118,7 @@ void calc_pressure(void) {
     }
 
     // Contribution from monomer-solvent forces
-    for (j = 0; j < sys.n_dpd; j++) {
+    for (j = 0; j < sys.n_solvent; j++) {
       dr = vdist(part_mon[i].r, part_dpd[j].r);
       periodic_bc_dr(&dr);
 
@@ -130,10 +130,10 @@ void calc_pressure(void) {
     }
   }
 
-  // Contribution from wall forces
-  for (i = sys.n_dpd; i < sys.n_dpd+sys.n_wall; i++) {
+  // Contribution from wall and pore particles
+  for (i = sys.n_solvent; i < sys.n_dpd; i++) {
     // Wall-solvent interaction
-    for (j = 0; j < sys.n_dpd; j++) {
+    for (j = 0; j < sys.n_solvent; j++) {
       dr = vdist(part_dpd[i].r, part_dpd[j].r);
       periodic_bc_dr(&dr);
 
@@ -240,11 +240,28 @@ void check_bond(int i) {
 }
 
 void check_wall(Vector r) {
-  int i;
-
   sys.wall_overlap = 0;
 
-  if (r.z > sys.wall_min_z && r.z < sys.wall_max_z) {
-    sys.wall_overlap = 1;
+  if (r.z >= sys.wall_min.z && r.z <= sys.wall_max.z) {
+    if (r.x >= sys.pore_max.x || r.x <= sys.pore_min.x) {
+      sys.wall_overlap = 1;
+    } else if (r.y >= sys.pore_max.y || r.y <= sys.pore_min.y) {
+      sys.wall_overlap = 1;
+    }
+  }
+}
+
+void check_pore(Vector r) {
+  sys.pore_overlap = 0;
+
+  if (r.z >= sys.pore_min.z && r.z <= sys.pore_max.z) {
+    if ((r.x <= sys.pore_min.x && r.x >= sys.pore_min.x-(sys.n_layers*sys.r_wall))
+      || (r.x >= sys.pore_max.x && r.x <= sys.pore_max.x+(sys.n_layers*sys.r_wall))) {
+
+      if ((r.y <= sys.pore_min.y && r.y >= sys.pore_min.y-(sys.n_layers*sys.r_wall))
+        || (r.y >= sys.pore_max.y && r.y <= sys.pore_max.y+(sys.n_layers*sys.r_wall))) {
+        sys.pore_overlap = 1;
+      }
+    }
   }
 }

@@ -15,10 +15,10 @@ void monte_carlo(void) {
 
     // Randomly move a monomer
     i = rand() % sys.n_mon;
-    random_move_mon(i);
+    move_monomer(i);
 
     if (accept_move()) {
-      // Move was accepeted
+      // The move was accepeted
       sys.n_accept_mon += 1;
 
       part_mon[i].ro.x = part_mon[i].r.x;
@@ -33,7 +33,7 @@ void monte_carlo(void) {
         part_dpd[j].Eo = part_dpd[j].E;
       }
     } else {
-      // Move was rejected
+      // The move was rejected
       part_mon[i].r.x = part_mon[i].ro.x;
       part_mon[i].r.y = part_mon[i].ro.y;
       part_mon[i].r.z = part_mon[i].ro.z;
@@ -47,28 +47,16 @@ void monte_carlo(void) {
       }
     }
   } else {
-    // A DPD particle was chosen
-    sys.n_attempt_dpd += 1;
+    // A solvent particle was chosen
+    sys.n_attempt_solvent += 1;
 
-    // Randomly move a DPD particle
-    i = rand() % sys.n_dpd;
-    random_move_dpd(i);
+    // Randomly move a solvent particle
+    i = rand() % sys.n_solvent;
+    move_solvent(i);
 
-    if (!accept_move()) {
-      part_dpd[i].r.x = part_dpd[i].ro.x;
-      part_dpd[i].r.y = part_dpd[i].ro.y;
-      part_dpd[i].r.z = part_dpd[i].ro.z;
-
-      for (j = 0; j < sys.n_dpd; j++) {
-        part_dpd[j].E = part_dpd[j].Eo;
-      }
-
-      for (j = 0; j < sys.n_mon; j++) {
-        part_mon[j].E = part_mon[j].Eo;
-      }
-    } else {
+    if (accept_move()) {
       // The move was accepted
-      sys.n_accept_dpd += 1;
+      sys.n_accept_solvent += 1;
 
       part_dpd[i].ro.x = part_dpd[i].r.x;
       part_dpd[i].ro.y = part_dpd[i].r.y;
@@ -86,11 +74,24 @@ void monte_carlo(void) {
       if (sys.calc_list && check_cell(part_dpd[i].r, part_dpd[i].ro)) {
         new_list();
       }
+    } else {
+      // The move was rejected
+      part_dpd[i].r.x = part_dpd[i].ro.x;
+      part_dpd[i].r.y = part_dpd[i].ro.y;
+      part_dpd[i].r.z = part_dpd[i].ro.z;
+
+      for (j = 0; j < sys.n_dpd; j++) {
+        part_dpd[j].E = part_dpd[j].Eo;
+      }
+
+      for (j = 0; j < sys.n_mon; j++) {
+        part_mon[j].E = part_mon[j].Eo;
+      }
     }
   }
 }
 
-void random_move_dpd(int i) {
+void move_solvent(int i) {
   int ix, ixo, iy, iyo, iz, izo, j, jx, jy, jz, dix, diy, diz, l, m, n;
 
   part_dpd[i].ro.x = part_dpd[i].r.x;
@@ -106,25 +107,27 @@ void random_move_dpd(int i) {
   periodic_bc_r(&part_dpd[i].r);
   // Check for wall overlap
   check_wall(part_dpd[i].r);
+  // Check for pore overlap
+  check_pore(part_dpd[i].r);
 
-  if (sys.calc_list && !sys.wall_overlap) {
+  if (sys.calc_list && !sys.wall_overlap && !sys.pore_overlap) {
     for (j = 0; j < sys.n_mon; j++) {
       part_mon[j].Eo = part_mon[j].E;
       part_mon[j].E = calc_energy_mon(j);
     }
 
     // Determine cell number of particle i
-    ix = (int) part_dpd[i].r.x / sys.r_cell.x;
-    iy = (int) part_dpd[i].r.y / sys.r_cell.y;
-    iz = (int) part_dpd[i].r.z / sys.r_cell.z;
+    ix = (int) (part_dpd[i].r.x / sys.r_cell.x);
+    iy = (int) (part_dpd[i].r.y / sys.r_cell.y);
+    iz = (int) (part_dpd[i].r.z / sys.r_cell.z);
 
     for (l = -1; l <= 1; l++) {
       for (m = -1; m <= 1; m++) {
         for (n = -1; n <= 1; n++) {
           // Determine the cell
-          jx = mod(ix+l, sys.n_cell.x);
-          jy = mod(iy+m, sys.n_cell.y);
-          jz = mod(iz+n, sys.n_cell.z);
+          jx = mod(ix+l, sys.n_cell_1d.x);
+          jy = mod(iy+m, sys.n_cell_1d.y);
+          jz = mod(iz+n, sys.n_cell_1d.z);
 
           j = sys.hoc[jx][jy][jz];
 
@@ -142,21 +145,21 @@ void random_move_dpd(int i) {
     if (check_cell(part_dpd[i].r, part_dpd[i].ro)) {
       // The particle entered a new cell
       // Must consider the neighbors of the old cell
-      ixo = (int) part_dpd[i].ro.x / sys.r_cell.x;
-      iyo = (int) part_dpd[i].ro.y / sys.r_cell.y;
-      izo = (int) part_dpd[i].ro.z / sys.r_cell.z;
+      ixo = (int) (part_dpd[i].ro.x / sys.r_cell.x);
+      iyo = (int) (part_dpd[i].ro.y / sys.r_cell.y);
+      izo = (int) (part_dpd[i].ro.z / sys.r_cell.z);
 
       dix = ix - ixo;
       diy = iy - iyo;
       diz = iz - izo;
 
       if (dix != 0) {
-        jx = mod(ixo - dix, sys.n_cell.x);
+        jx = mod(ixo - dix, sys.n_cell_1d.x);
 
         for (m = -1; m <= 1; m++) {
           for (n = -1; n <= 1; n++) {
-            jy = mod(iyo+m, sys.n_cell.y);
-            jz = mod(izo+n, sys.n_cell.z);
+            jy = mod(iyo+m, sys.n_cell_1d.y);
+            jz = mod(izo+n, sys.n_cell_1d.z);
 
             j = sys.hoc_copy[jx][jy][jz];
 
@@ -172,12 +175,12 @@ void random_move_dpd(int i) {
       }
 
       if (diy != 0) {
-        jy = mod(iyo - diy, sys.n_cell.y);
+        jy = mod(iyo - diy, sys.n_cell_1d.y);
 
         for (l = -1; l <= 1; l++) {
           for (n = -1; n <= 1; n++) {
-            jx = mod(ixo+l, sys.n_cell.x);
-            jz = mod(izo+n, sys.n_cell.z);
+            jx = mod(ixo+l, sys.n_cell_1d.x);
+            jz = mod(izo+n, sys.n_cell_1d.z);
 
             j = sys.hoc_copy[jx][jy][jz];
 
@@ -193,12 +196,12 @@ void random_move_dpd(int i) {
       }
 
       if (diz != 0) {
-        jz = mod(izo - diz, sys.n_cell.z);
+        jz = mod(izo - diz, sys.n_cell_1d.z);
 
         for (l = -1; l <= 1; l++) {
           for (m = -1; m <= 1; m++) {
-            jx = mod(ixo+l, sys.n_cell.x);
-            jy = mod(iyo+m, sys.n_cell.y);
+            jx = mod(ixo+l, sys.n_cell_1d.x);
+            jy = mod(iyo+m, sys.n_cell_1d.y);
 
             j = sys.hoc_copy[jx][jy][jz];
 
@@ -211,12 +214,12 @@ void random_move_dpd(int i) {
         }
       }
     }
-  } else if (!sys.wall_overlap) {
+  } else if (!sys.wall_overlap && !sys.pore_overlap) {
     calc_energy_brute();
   }
 }
 
-void random_move_mon(int i) {
+void move_monomer(int i) {
   int ix, ixo, iy, iyo, iz, izo, j, jx, jy, jz, dix, diy, diz, l, m, n;
 
   part_mon[i].ro.x = part_mon[i].r.x;
@@ -228,31 +231,33 @@ void random_move_mon(int i) {
   part_mon[i].r.y += sys.dr_max_mon * (2*ran3() - 1);
   part_mon[i].r.z += sys.dr_max_mon * (2*ran3() - 1);
 
-  // Check for periodic boundary conditions
+  // Periodic boundary conditions
   periodic_bc_r(&part_mon[i].r);
   // Check for bond breaks
   check_bond(i);
   // Check for wall overlap
   check_wall(part_mon[i].r);
+  // Check for pore overlap
+  check_pore(part_mon[i].r);
 
-  if (sys.calc_list && !sys.bond_break && !sys.wall_overlap) {
+  if (sys.calc_list && !sys.bond_break && !sys.wall_overlap && !sys.pore_overlap) {
     for (j = 0; j < sys.n_mon; j++) {
       part_mon[j].Eo = part_mon[j].E;
       part_mon[j].E = calc_energy_mon(j);
     }
 
     // Determine new energies for nearest neighbor cells
-    ix = (int) part_mon[i].r.x / sys.r_cell.x;
-    iy = (int) part_mon[i].r.y / sys.r_cell.y;
-    iz = (int) part_mon[i].r.z / sys.r_cell.z;
+    ix = (int) (part_mon[i].r.x / sys.r_cell.x);
+    iy = (int) (part_mon[i].r.y / sys.r_cell.y);
+    iz = (int) (part_mon[i].r.z / sys.r_cell.z);
 
     for (l = -1; l <= 1; l++) {
       for (m = -1; m <= 1; m++) {
         for (n = -1; n <= 1; n++) {
           // Determine the cell
-          jx = mod(ix+l, sys.n_cell.x);
-          jy = mod(iy+m, sys.n_cell.y);
-          jz = mod(iz+n, sys.n_cell.z);
+          jx = mod(ix+l, sys.n_cell_1d.x);
+          jy = mod(iy+m, sys.n_cell_1d.y);
+          jz = mod(iz+n, sys.n_cell_1d.z);
 
           j = sys.hoc[jx][jy][jz];
 
@@ -270,21 +275,21 @@ void random_move_mon(int i) {
     if (check_cell(part_mon[i].r, part_mon[i].ro)) {
       // The particle entered a new cell
       // Must consider the neighbors of the old cell
-      ixo = (int) part_mon[i].ro.x / sys.r_cell.x;
-      iyo = (int) part_mon[i].ro.y / sys.r_cell.y;
-      izo = (int) part_mon[i].ro.z / sys.r_cell.z;
+      ixo = (int) (part_mon[i].ro.x / sys.r_cell.x);
+      iyo = (int) (part_mon[i].ro.y / sys.r_cell.y);
+      izo = (int) (part_mon[i].ro.z / sys.r_cell.z);
 
       dix = ix - ixo;
       diy = iy - iyo;
       diz = iz - izo;
 
       if (dix != 0) {
-        jx = mod(ixo - dix, sys.n_cell.x);
+        jx = mod(ixo - dix, sys.n_cell_1d.x);
 
         for (m = -1; m <= 1; m++) {
           for (n = -1; n <= 1; n++) {
-            jy = mod(iyo+m, sys.n_cell.y);
-            jz = mod(izo+n, sys.n_cell.z);
+            jy = mod(iyo+m, sys.n_cell_1d.y);
+            jz = mod(izo+n, sys.n_cell_1d.z);
 
             j = sys.hoc_copy[jx][jy][jz];
 
@@ -300,12 +305,12 @@ void random_move_mon(int i) {
       }
 
       if (diy != 0) {
-        jy = mod(iyo - diy, sys.n_cell.y);
+        jy = mod(iyo - diy, sys.n_cell_1d.y);
 
         for (l = -1; l <= 1; l++) {
           for (n = -1; n <= 1; n++) {
-            jx = mod(ixo+l, sys.n_cell.x);
-            jz = mod(izo+n, sys.n_cell.z);
+            jx = mod(ixo+l, sys.n_cell_1d.x);
+            jz = mod(izo+n, sys.n_cell_1d.z);
 
             j = sys.hoc_copy[jx][jy][jz];
 
@@ -321,12 +326,12 @@ void random_move_mon(int i) {
       }
 
       if (diz != 0) {
-        jz = mod(izo - diz, sys.n_cell.z);
+        jz = mod(izo - diz, sys.n_cell_1d.z);
 
         for (l = -1; l <= 1; l++) {
           for (m = -1; m <= 1; m++) {
-            jx = mod(ixo+l, sys.n_cell.x);
-            jy = mod(iyo+m, sys.n_cell.y);
+            jx = mod(ixo+l, sys.n_cell_1d.x);
+            jy = mod(iyo+m, sys.n_cell_1d.y);
 
             j = sys.hoc_copy[jx][jy][jz];
 
@@ -339,7 +344,7 @@ void random_move_mon(int i) {
         }
       }
     }
-  } else if (!sys.bond_break && !sys.wall_overlap) {
+  } else if (!sys.bond_break && !sys.wall_overlap && !sys.pore_overlap) {
     calc_energy_brute();
   }
 }
@@ -347,10 +352,11 @@ void random_move_mon(int i) {
 int accept_move(void) {
   double En, Eo;
 
-  if (sys.bond_break || sys.wall_overlap) {
+  if (sys.bond_break || sys.wall_overlap || sys.pore_overlap) {
     // Reject the movement
     sys.bond_break = 0;
     sys.wall_overlap = 0;
+    sys.pore_overlap = 0;
     return 0;
   } else {
     Eo = sys.energy;

@@ -2,12 +2,14 @@
 3           density_s
 1           calc_list
 
-10.0        length_x
-10.0        length_y
+15.0        length_x
+15.0        length_y
 15.0        length_z
 
 3           density_w
-2           n_layers
+1           n_layers
+
+1.0         pore_radius
 
 1.0         r_c
 0.2         dr_max_dpd
@@ -18,7 +20,7 @@
 25.0        a_ss
 9.01        a_sw
 
-8.0         pol_init_z
+1.0         pol_init_z
 0.5         pol_init_bl
 
 10000     n_steps
