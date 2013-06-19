@@ -32,7 +32,7 @@ Edit src/dpd.inp to change parameters. The following is a description of all the
     density_w - density of wall particles (3)
     n_layers - number of wall layers (2)
 
-    pore_radius - half side length of the rectangular pore (1)
+    pore_radius - half side length of the rectangular pore (1.0)
 
     r_c - cutoff radius of particle interaction (1.0)
     dr_max_dpd - max displacement of a dpd monte carlo move (0.2)
@@ -43,7 +43,7 @@ Edit src/dpd.inp to change parameters. The following is a description of all the
     a_ss - solvent-solvent interaction strength (25.0)
     a_sw - solvent-wall interaction strength (9.01)
 
-    pol_init_z - initial z coordinate of the first monomer (>length_z/2)
+    pol_init_z - initial z coordinate of the first monomer (<length_z/2)
     pol_init_bl - initial bond length of the polymer (0.5-1.0)
 
     n_steps - number of monte carlo moves to attempt (1000000)
