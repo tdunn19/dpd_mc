@@ -32,6 +32,8 @@ Edit src/dpd.inp to change parameters. The following is a description of all the
     density_w - density of wall particles (3)
     n_layers - number of wall layers (2)
 
+    pore_radius - half side length of the rectangular pore (1)
+
     r_c - cutoff radius of particle interaction (1.0)
     dr_max_dpd - max displacement of a dpd monte carlo move (0.2)
     dr_max_mon - max displacement of a monomer monte carlo move (0.1)
@@ -187,6 +189,7 @@ Version 1.0 (May 20, 2013)
 To-do list
 ----------
 
-*   add the nanopore
+*   add the Q coordinate and binning
+*   add functionality for a circular pore
 *   add functionality to completely remove the wall and/or polymer using just input parameters
 *   instead of using a global 3d array hoc_copy, use the memcpy function
