@@ -10,40 +10,25 @@
 void monte_carlo(void) {
   int i, j, ix, iy, iz, ixo, iyo, izo;
 
-  // Choose a random particle
-  i = rand() % (sys.n_dpd + sys.n_mon);
-
-  if (i >= sys.n_dpd) {
+  if (ran3() < sys.mc_ratio) {
     // A monomer was chosen
 <<<<<<< HEAD
 
 =======
     sys.n_attempt_mon += 1;
->>>>>>> polymer
-    i = i % sys.n_dpd;
-    //printf("monomer[%d] was chosen\n", i);
-    random_move_mon(i);
 
-    if (!accept_move()) {
-    //  printf("MOVE REJECTED\n\n");
-        part_mon[i].r.x = part_mon[i].ro.x;
-      part_mon[i].r.y = part_mon[i].ro.y;
-      part_mon[i].r.z = part_mon[i].ro.z;
+    // Randomly move a monomer
+    i = rand() % sys.n_mon;
+    move_monomer(i);
 
-      for (j = 0; j < sys.n_mon; j++) {
-        part_mon[j].E = part_mon[j].Eo;
-      }
-
-      for (j = 0; j < sys.n_dpd; j++) {
-        part_dpd[j].E = part_dpd[j].Eo;
-      }
-    } else {
-<<<<<<< HEAD
-        //printf("MOVE ACCEPTED\n\n");
-=======
+    if (accept_move()) {
+      // The move was accepeted
       sys.n_accept_mon += 1;
 
->>>>>>> polymer
+      part_mon[i].ro.x = part_mon[i].r.x;
+      part_mon[i].ro.y = part_mon[i].r.y;
+      part_mon[i].ro.z = part_mon[i].r.z;
+
       for (j = 0; j < sys.n_mon; j++) {
         part_mon[j].Eo = part_mon[j].E;
       }
@@ -51,17 +36,59 @@ void monte_carlo(void) {
       for (j = 0; j < sys.n_dpd; j++) {
         part_dpd[j].Eo = part_dpd[j].E;
       }
+    } else {
+      // The move was rejected
+      part_mon[i].r.x = part_mon[i].ro.x;
+      part_mon[i].r.y = part_mon[i].ro.y;
+      part_mon[i].r.z = part_mon[i].ro.z;
+
+>>>>>>> polymer
+      for (j = 0; j < sys.n_mon; j++) {
+        part_mon[j].E = part_mon[j].Eo;
+      }
+
+      for (j = 0; j < sys.n_solvent; j++) {
+        part_dpd[j].E = part_dpd[j].Eo;
+      }
 <<<<<<< HEAD
 
 =======
 >>>>>>> polymer
     }
   } else {
-    // A DPD particle was chosen
-    sys.n_attempt_dpd += 1;
-    random_move_dpd(i);
+    // A solvent particle was chosen
+    sys.n_attempt_solvent += 1;
 
-    if (!accept_move()) {
+    // Randomly move a solvent particle
+    i = rand() % sys.n_solvent;
+    move_solvent(i);
+
+    if (accept_move()) {
+      // The move was accepted
+      sys.n_accept_solvent += 1;
+
+      part_dpd[i].ro.x = part_dpd[i].r.x;
+      part_dpd[i].ro.y = part_dpd[i].r.y;
+      part_dpd[i].ro.z = part_dpd[i].r.z;
+
+>>>>>>> polymer
+      for (j = 0; j < sys.n_mon; j++) {
+        part_mon[j].Eo = part_mon[j].E;
+      }
+
+      for (j = 0; j < sys.n_solvent; j++) {
+        part_dpd[j].Eo = part_dpd[j].E;
+      }
+<<<<<<< HEAD
+=======
+
+>>>>>>> polymer
+      // Generate a new list if the particle changed cells
+      if (sys.calc_list && check_cell(part_dpd[i].r, part_dpd[i].ro)) {
+        new_list();
+      }
+    } else {
+      // The move was rejected
       part_dpd[i].r.x = part_dpd[i].ro.x;
       part_dpd[i].r.y = part_dpd[i].ro.y;
       part_dpd[i].r.z = part_dpd[i].ro.z;
@@ -73,32 +100,11 @@ void monte_carlo(void) {
       for (j = 0; j < sys.n_mon; j++) {
         part_mon[j].E = part_mon[j].Eo;
       }
-    } else {
-<<<<<<< HEAD
-=======
-      sys.n_accept_dpd += 1;
-
->>>>>>> polymer
-      for (j = 0; j < sys.n_mon; j++) {
-        part_mon[j].Eo = part_mon[j].E;
-      }
-
-      for (j = 0; j < sys.n_dpd; j++) {
-        part_dpd[j].Eo = part_dpd[j].E;
-      }
-<<<<<<< HEAD
-=======
-
->>>>>>> polymer
-      // Generate a new list if the particle changed cells
-      if (sys.calc_list && check_cell(part_dpd[i].r, part_dpd[i].ro)) {
-        new_list();
-      }
     }
   }
 }
 
-void random_move_dpd(int i) {
+void move_solvent(int i) {
   int ix, ixo, iy, iyo, iz, izo, j, jx, jy, jz, dix, diy, diz, l, m, n;
   double rij;
   // int ***hoc_copy = malloc(2*sizeof(sys.hoc));
@@ -116,28 +122,13 @@ void random_move_dpd(int i) {
   part_dpd[i].r.z += sys.dr_max_dpd * (2*ran3() - 1);
 
   // Periodic boundary conditions
-  if (part_dpd[i].r.x > sys.length) {
-    part_dpd[i].r.x -= sys.length;
-  } else if (part_dpd[i].r.x < 0) {
-    part_dpd[i].r.x += sys.length;
-  }
+  periodic_bc_r(&part_dpd[i].r);
+  // Check for wall overlap
+  check_wall(part_dpd[i].r);
+  // Check for pore overlap
+  check_pore(part_dpd[i].r);
 
-  if (part_dpd[i].r.y > sys.length) {
-    part_dpd[i].r.y -= sys.length;
-  } else if (part_dpd[i].r.y < 0) {
-    part_dpd[i].r.y += sys.length;
-  }
-
-  if (part_dpd[i].r.z > sys.length) {
-    part_dpd[i].r.z -= sys.length;
-  } else if (part_dpd[i].r.z < 0) {
-    part_dpd[i].r.z += sys.length;
-  }
-  printf("dpd[%d].r=(%lf,%lf,%lf)->(%lf,%lf,%lf)\n",i,
-          part_dpd[i].ro.x,part_dpd[i].ro.y,part_dpd[i].ro.z,
-          part_dpd[i].r.x,part_dpd[i].r.y,part_dpd[i].r.z);
-
-  if (sys.calc_list) {
+  if (sys.calc_list && !sys.wall_overlap && !sys.pore_overlap) {
     for (j = 0; j < sys.n_mon; j++) {
       part_mon[j].Eo = part_mon[j].E;
       part_mon[j].E = calc_energy_mon(j);
@@ -153,17 +144,17 @@ void random_move_dpd(int i) {
     }
 
     // Determine cell number of particle i
-    ix = (int) part_dpd[i].r.x / sys.r_cell;
-    iy = (int) part_dpd[i].r.y / sys.r_cell;
-    iz = (int) part_dpd[i].r.z / sys.r_cell;
+    ix = (int) (part_dpd[i].r.x / sys.r_cell.x);
+    iy = (int) (part_dpd[i].r.y / sys.r_cell.y);
+    iz = (int) (part_dpd[i].r.z / sys.r_cell.z);
 
     for (l = -1; l <= 1; l++) {
       for (m = -1; m <= 1; m++) {
         for (n = -1; n <= 1; n++) {
           // Determine the cell
-          jx = mod(ix+l, sys.n_cell);
-          jy = mod(iy+m, sys.n_cell);
-          jz = mod(iz+n, sys.n_cell);
+          jx = mod(ix+l, sys.n_cell_1d.x);
+          jy = mod(iy+m, sys.n_cell_1d.y);
+          jz = mod(iz+n, sys.n_cell_1d.z);
 
           j = sys.hoc[jx][jy][jz];
 
@@ -195,32 +186,22 @@ void random_move_dpd(int i) {
     if (check_cell(part_dpd[i].r, part_dpd[i].ro)) {
       // The particle entered a new cell
       // Must consider the neighbors of the old cell
-<<<<<<< HEAD
-      // First, make a copy of the HOC array, which we can freely modify
-      // memcpy(hoc_copy, sys.hoc, sizeof(hoc_copy));
-      // memcpy(hoc_copy, sys.hoc, 2*sizeof(hoc_copy));
-      // memcpy(hoc_copy, sys.hoc, sizeof(pow((sys.n_cell+1)*sizeof(int),3)));
-
-
-=======
->>>>>>> polymer
-      ixo = (int) part_dpd[i].ro.x / sys.r_cell;
-      iyo = (int) part_dpd[i].ro.y / sys.r_cell;
-      izo = (int) part_dpd[i].ro.z / sys.r_cell;
+      ixo = (int) (part_dpd[i].ro.x / sys.r_cell.x);
+      iyo = (int) (part_dpd[i].ro.y / sys.r_cell.y);
+      izo = (int) (part_dpd[i].ro.z / sys.r_cell.z);
 
       dix = ix - ixo;
       diy = iy - iyo;
       diz = iz - izo;
 
       if (dix != 0) {
-        jx = mod(ixo - dix, sys.n_cell);
+        jx = mod(ixo - dix, sys.n_cell_1d.x);
 
         printf("dix != 0:\n ");
         for (m = -1; m <= 1; m++) {
           for (n = -1; n <= 1; n++) {
-            jy = mod(iyo+m, sys.n_cell);
-            jz = mod(izo+n, sys.n_cell);
-        // printf("[%d][%d][%d], ",jx,jy,jz);
+            jy = mod(iyo+m, sys.n_cell_1d.y);
+            jz = mod(izo+n, sys.n_cell_1d.z);
 
             j = sys.hoc_copy[jx][jy][jz];
 
@@ -251,14 +232,12 @@ void random_move_dpd(int i) {
       }
 
       if (diy != 0) {
-        jy = mod(iyo - diy, sys.n_cell);
-        printf("diy != 0: \n");
+        jy = mod(iyo - diy, sys.n_cell_1d.y);
 
         for (l = -1; l <= 1; l++) {
           for (n = -1; n <= 1; n++) {
-            jx = mod(ixo+l, sys.n_cell);
-            jz = mod(izo+n, sys.n_cell);
-        // printf("[%d][%d][%d], ",jx,jy,jz);
+            jx = mod(ixo+l, sys.n_cell_1d.x);
+            jz = mod(izo+n, sys.n_cell_1d.z);
 
             j = sys.hoc_copy[jx][jy][jz];
 
@@ -292,14 +271,12 @@ void random_move_dpd(int i) {
       }
 
       if (diz != 0) {
-        jz = mod(izo - diz, sys.n_cell);
-        printf("diz != 0:\n ");
+        jz = mod(izo - diz, sys.n_cell_1d.z);
 
         for (l = -1; l <= 1; l++) {
           for (m = -1; m <= 1; m++) {
-            jx = mod(ixo+l, sys.n_cell);
-            jy = mod(iyo+m, sys.n_cell);
-        // printf("[%d][%d][%d], ",jx,jy,jz);
+            jx = mod(ixo+l, sys.n_cell_1d.x);
+            jy = mod(iyo+m, sys.n_cell_1d.y);
 
             j = sys.hoc_copy[jx][jy][jz];
 
@@ -325,12 +302,12 @@ void random_move_dpd(int i) {
       // printf("\n");
       }
     }
-  } else {
+  } else if (!sys.wall_overlap && !sys.pore_overlap) {
     calc_energy_brute();
   }
 }
 
-void random_move_mon(int i) {
+void move_monomer(int i) {
   int ix, ixo, iy, iyo, iz, izo, j, jx, jy, jz, dix, diy, diz, l, m, n;
 
   part_mon[i].ro.x = part_mon[i].r.x;
@@ -344,52 +321,33 @@ void random_move_mon(int i) {
 
 
   // Periodic boundary conditions
-  if (part_mon[i].r.x > sys.length) {
-    part_mon[i].r.x -= sys.length;
-  } else if (part_mon[i].r.x < 0) {
-    part_mon[i].r.x += sys.length;
-  }
-
-  if (part_mon[i].r.y > sys.length) {
-    part_mon[i].r.y -= sys.length;
-  } else if (part_mon[i].r.y < 0) {
-    part_mon[i].r.y += sys.length;
-  }
-
-  if (part_mon[i].r.z > sys.length) {
-    part_mon[i].r.z -= sys.length;
-  } else if (part_mon[i].r.z < 0) {
-    part_mon[i].r.z += sys.length;
-  }
-  printf("mon[%d].r=(%lf,%lf,%lf)->(%lf,%lf,%lf)\n",i,
-          part_mon[i].ro.x,part_mon[i].ro.y,part_mon[i].ro.z,
-          part_mon[i].r.x,part_mon[i].r.y,part_mon[i].r.z);
-
-
+  periodic_bc_r(&part_mon[i].r);
   // Check for bond breaks
   check_bond(i);
+  // Check for wall overlap
+  check_wall(part_mon[i].r);
+  // Check for pore overlap
+  check_pore(part_mon[i].r);
 
-  if (sys.calc_list && !sys.bond_break) {
-//      printf("bond did not break\n");
-
-      for (j = 0; j < sys.n_mon; j++) {
+  if (sys.calc_list && !sys.bond_break && !sys.wall_overlap && !sys.pore_overlap) {
+    for (j = 0; j < sys.n_mon; j++) {
       part_mon[j].Eo = part_mon[j].E;
       part_mon[j].E = calc_energy_mon(j);
  //     printf("mon[%d].E = %lf->%lf\n", j, part_mon[j].Eo, part_mon[j].E);
     }
 
     // Determine new energies for nearest neighbor cells
-    ix = (int) part_mon[i].r.x / sys.r_cell;
-    iy = (int) part_mon[i].r.y / sys.r_cell;
-    iz = (int) part_mon[i].r.z / sys.r_cell;
+    ix = (int) (part_mon[i].r.x / sys.r_cell.x);
+    iy = (int) (part_mon[i].r.y / sys.r_cell.y);
+    iz = (int) (part_mon[i].r.z / sys.r_cell.z);
 
     for (l = -1; l <= 1; l++) {
       for (m = -1; m <= 1; m++) {
         for (n = -1; n <= 1; n++) {
           // Determine the cell
-          jx = mod(ix+l, sys.n_cell);
-          jy = mod(iy+m, sys.n_cell);
-          jz = mod(iz+n, sys.n_cell);
+          jx = mod(ix+l, sys.n_cell_1d.x);
+          jy = mod(iy+m, sys.n_cell_1d.y);
+          jz = mod(iz+n, sys.n_cell_1d.z);
 
   //        printf("now calculating cell [%d][%d][%d]\n",jx,jy,jz);
 
@@ -410,25 +368,21 @@ void random_move_mon(int i) {
     if (check_cell(part_mon[i].r, part_mon[i].ro)) {
       // The particle entered a new cell
       // Must consider the neighbors of the old cell
-
-      ixo = (int) part_mon[i].ro.x / sys.r_cell;
-      iyo = (int) part_mon[i].ro.y / sys.r_cell;
-      izo = (int) part_mon[i].ro.z / sys.r_cell;
-      //printf("particle entered a new cell:\n");
-      //printf("\t[%d][%d][%d] -> [%d][%d][%d]\n",ixo,iyo,izo,ix,iy,iz);
+      ixo = (int) (part_mon[i].ro.x / sys.r_cell.x);
+      iyo = (int) (part_mon[i].ro.y / sys.r_cell.y);
+      izo = (int) (part_mon[i].ro.z / sys.r_cell.z);
 
       dix = ix - ixo;
       diy = iy - iyo;
       diz = iz - izo;
 
       if (dix != 0) {
-        jx = mod(ixo - dix, sys.n_cell);
+        jx = mod(ixo - dix, sys.n_cell_1d.x);
 
         for (m = -1; m <= 1; m++) {
           for (n = -1; n <= 1; n++) {
-            jy = mod(iyo+m, sys.n_cell);
-            jz = mod(izo+n, sys.n_cell);
-          //printf("now calculating cell [%d][%d][%d]\n",jx,jy,jz);
+            jy = mod(iyo+m, sys.n_cell_1d.y);
+            jz = mod(izo+n, sys.n_cell_1d.z);
 
             j = sys.hoc_copy[jx][jy][jz];
 
@@ -446,13 +400,12 @@ void random_move_mon(int i) {
       }
 
       if (diy != 0) {
-        jy = mod(iyo - diy, sys.n_cell);
+        jy = mod(iyo - diy, sys.n_cell_1d.y);
 
         for (l = -1; l <= 1; l++) {
           for (n = -1; n <= 1; n++) {
-            jx = mod(ixo+l, sys.n_cell);
-            jz = mod(izo+n, sys.n_cell);
-          //printf("now calculating cell [%d][%d][%d]\n",jx,jy,jz);
+            jx = mod(ixo+l, sys.n_cell_1d.x);
+            jz = mod(izo+n, sys.n_cell_1d.z);
 
             j = sys.hoc_copy[jx][jy][jz];
 
@@ -470,13 +423,12 @@ void random_move_mon(int i) {
       }
 
       if (diz != 0) {
-        jz = mod(izo - diz, sys.n_cell);
+        jz = mod(izo - diz, sys.n_cell_1d.z);
 
         for (l = -1; l <= 1; l++) {
           for (m = -1; m <= 1; m++) {
-            jx = mod(ixo+l, sys.n_cell);
-            jy = mod(iyo+m, sys.n_cell);
-          //printf("now calculating cell [%d][%d][%d]\n",jx,jy,jz);
+            jx = mod(ixo+l, sys.n_cell_1d.x);
+            jy = mod(iyo+m, sys.n_cell_1d.y);
 
             j = sys.hoc_copy[jx][jy][jz];
 
@@ -491,7 +443,7 @@ void random_move_mon(int i) {
         }
       }
     }
-  } else if (!sys.bond_break) {
+  } else if (!sys.bond_break && !sys.wall_overlap && !sys.pore_overlap) {
     calc_energy_brute();
   }
 }
@@ -500,9 +452,11 @@ int accept_move(void) {
   double En, Eo;
   double randnum = ran3();
 
-  if (sys.bond_break) {
+  if (sys.bond_break || sys.wall_overlap || sys.pore_overlap) {
     // Reject the movement
-   printf("\nBOND BROKEN!\n\n");
+    sys.bond_break = 0;
+    sys.wall_overlap = 0;
+    sys.pore_overlap = 0;
     return 0;
   } else {
     printf("\nsys.Eo = %lf\n", sys.energy);

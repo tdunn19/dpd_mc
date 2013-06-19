@@ -1,7 +1,15 @@
 10          n_mon
-1           density
-1000	    volume
+3           density_s
 1           calc_list
+
+15.0        length_x
+15.0        length_y
+15.0        length_z
+
+3           density_w
+1           n_layers
+
+1.0         pore_radius
 
 1.0         r_c
 0.2         dr_max_dpd
@@ -10,19 +18,15 @@
 25.0	    a_mm
 15.0        a_ms
 25.0        a_ss
-<<<<<<< HEAD
-10000        nsteps
-1.0         temp
-100         freq_sample
-100         freq_monitor
-1           calc_list
-822555134   iseed
-=======
+9.01        a_sw
 
-1000000        nsteps
+1.0         pol_init_z
+0.5         pol_init_bl
+
+10000     n_steps
+0.5         mc_ratio(1=monomers_only,0=dpd_only)
 1.0         temp
 100         freq_sample
 100         freq_monitor
 
-825245134   iseed
->>>>>>> polymer
+825525134   iseed

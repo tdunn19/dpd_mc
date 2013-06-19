@@ -1,4 +1,10 @@
-density	1
-volume	1000
-nsteps	10000	
-nfiles	10
+n_mon         10
+density_s	  3
+calc_list     1
+length_x      10
+length_y      10
+length_z      15
+n_steps	      1000000
+n_files       10
+runs_per_job  2
+time          48:00:00
