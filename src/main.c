@@ -26,7 +26,7 @@ void    calc_re(void);
 void    calc_rg(void);
 void    check_bond(int i);
 int     check_cell(Vector, Vector);
-void    check_pore(Vector);
+int     check_pore(Vector);
 void    check_wall(Vector);
 double  energy_c(Vector);
 double  energy_fene(int i, int j);

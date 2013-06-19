@@ -42,7 +42,7 @@ void monte_carlo(void) {
         part_mon[j].E = part_mon[j].Eo;
       }
 
-      for (j = 0; j < sys.n_dpd; j++) {
+      for (j = 0; j < sys.n_solvent; j++) {
         part_dpd[j].E = part_dpd[j].Eo;
       }
     }
@@ -66,7 +66,7 @@ void monte_carlo(void) {
         part_mon[j].Eo = part_mon[j].E;
       }
 
-      for (j = 0; j < sys.n_dpd; j++) {
+      for (j = 0; j < sys.n_solvent; j++) {
         part_dpd[j].Eo = part_dpd[j].E;
       }
 

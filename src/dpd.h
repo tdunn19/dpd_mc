@@ -119,7 +119,7 @@ extern void    calc_re(void);
 extern void    calc_rg(void);
 extern void    check_bond(int i);
 extern int     check_cell(Vector, Vector);
-extern void    check_pore(Vector);
+extern int     check_pore(Vector);
 extern void    check_wall(Vector);
 extern double  energy_c(Vector);
 extern double  energy_fene(int i, int j);;

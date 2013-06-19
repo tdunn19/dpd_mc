@@ -251,17 +251,28 @@ void check_wall(Vector r) {
   }
 }
 
-void check_pore(Vector r) {
+int check_pore(Vector r) {
   sys.pore_overlap = 0;
 
   if (r.z >= sys.pore_min.z && r.z <= sys.pore_max.z) {
     if ((r.x <= sys.pore_min.x && r.x >= sys.pore_min.x-(sys.n_layers*sys.r_wall))
       || (r.x >= sys.pore_max.x && r.x <= sys.pore_max.x+(sys.n_layers*sys.r_wall))) {
-
       if ((r.y <= sys.pore_min.y && r.y >= sys.pore_min.y-(sys.n_layers*sys.r_wall))
         || (r.y >= sys.pore_max.y && r.y <= sys.pore_max.y+(sys.n_layers*sys.r_wall))) {
         sys.pore_overlap = 1;
       }
     }
+  }
+
+  if (!sys.pore_overlap) {
+    if ((r.x > sys.pore_min.x && r.x < sys.pore_max.x)
+      && (r.y > sys.pore_min.y && r.y < sys.pore_min.y)
+      && (r.z > sys.pore_min.z && r.z < sys.pore_max.z)) {
+      return 1;
+    } else {
+      return 0;
+    }
+  } else {
+    return 0;
   }
 }

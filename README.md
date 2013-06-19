@@ -57,6 +57,27 @@ The run.sh and submit.sh scripts were written specifically for ACEnet clusters.
 Changelog
 ---------
 
+Version 4.0 (June 17, 2013)
+* the nanopore has been added:
+    * new input parameter pore_radius
+    * new parameter r_pore: distance between pore particles
+    * new parameter n_pore: number of pore particles
+    * new parameter pore_volume
+    * new parameter n_pore_1d: 3d vector that stores number of pore particles in each dimension
+    * new parameters pore_max and pore_min: vectors that define the bounds of the pore
+    * system length is now adjusted to accomodate the pore while still keeping the wall density and spacing consistent
+* changed function init_param: now calculates all system parameters and allocates memory for the particle arrays
+* new function init_pore: places the pore wall particles (no layers)
+* changed function init_wall: initializes wall on a skewed grid according to pore parameters, and adds layers to the nanopore
+* new function check_pore: takes in particle position vector r and checks if it is in the pore
+    * adjusts new parameter pore_overlap if the particle is in the pore wall
+    * accept_move will now check for this overlap and immediately reject the move if 1
+    * returns 1 if the particle is in the pore, 0 otherwise
+* changed functions calc_pressure, calc_energy_dpd, calc_energy_mon and calc_energy_brute to take into account pore particles
+* renamed n_dpd to n_solvent: n_dpd is now a sum of n_solvent, n_wall and n_pore
+* renamed random_move_mon and random_move_dpd to move_mon and move_solvent
+* some calculations were incorrectly casted as integers: e.g. (int) a / b should be (int) (a / b)
+
 Version 3.0 (June 7, 2013)
 * the wall has been added
     * new input parameter density_w: set density of wall particles

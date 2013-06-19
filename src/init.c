@@ -9,12 +9,6 @@
 void initialize(void) {
   input();
   init_param();
-  printf("n_solvent = %d\n", sys.n_solvent);
-  printf("n_wall= %d\n", sys.n_wall);
-  printf("n_pore = %d\n", sys.n_pore);
-  printf("r_wall = %lf\n", sys.r_wall);
-  printf("r_pore = %lf\n", sys.r_pore);
-
   init_part();
   init_pore();
   init_wall();
@@ -54,9 +48,6 @@ void init_param(void) {
   sys.wall_max.z = sys.length.z/2;
   sys.wall_min.z = sys.length.z/2 - sys.n_layers*sys.r_wall;
   sys.n_wall_1d.x = (int) (sys.pore_min.x / sys.r_wall);
-  printf("n_wall_1d.x = (int) %lf / %lf = (int) %lf = %d\n",
-    sys.pore_min.x, sys.r_wall, sys.pore_min.x/sys.r_wall,
-    sys.n_wall_1d.x);
   sys.wall_min.x = sys.pore_min.x - (sys.n_wall_1d.x)*sys.r_wall;
   sys.wall_max.x = sys.pore_max.x + (sys.n_wall_1d.x)*sys.r_wall;
   sys.n_wall_1d.x = 2*sys.n_wall_1d.x +  sys.n_pore_1d.x;
@@ -68,20 +59,6 @@ void init_param(void) {
   // Adjust the system length to keep a consistent wall density
   sys.length.x += sys.r_wall - (sys.wall_min.x+sys.length.x) + sys.wall_max.x;
   sys.length.y += sys.r_wall - (sys.wall_min.y+sys.length.y) + sys.wall_max.y;
-
-  printf("wall_min.x = %lf\n", sys.wall_min.x);
-  printf("wall_max.x = %lf\n", sys.wall_max.x);
-  printf("wall_min.y = %lf\n", sys.wall_min.y);
-  printf("wall_max.y = %lf\n", sys.wall_max.y);
-  printf("new length.x = %lf\n", sys.length.x);
-  printf("new length.y = %lf\n", sys.length.y);
-  Vector dr = {sys.wall_max.x - sys.wall_min.x, 0, 0};
-  periodic_bc_dr(&dr);
-  printf("x distance between wall particles = %lf\n", vmag(dr));
-
-  Vector dr2 = {0, sys.wall_max.y - sys.wall_min.y, 0};
-  periodic_bc_dr(&dr2);
-  printf("y distance between wall particles = %lf\n", vmag(dr2));
 
   // Number of pore particles
   sys.n_pore = 2 * (sys.n_pore_1d.x + sys.n_pore_1d.y - 2);
@@ -126,21 +103,14 @@ void init_param(void) {
     sys.r_cell.x = (double) (sys.length.x / fact);
     sys.n_cell_1d.x = (int) (sys.length.x / sys.r_cell.x + 1e-9);
 
-    printf("r_cell.x = %lf\tn_cell_1d.x = %d\n",
-      sys.r_cell.x, sys.n_cell_1d.x);
-
     fact = (int) (sys.length.y / sys.r_c + 1e-9);
     sys.r_cell.y = (double) (sys.length.y / fact);
     sys.n_cell_1d.y = (int) (sys.length.y / sys.r_cell.y + 1e-9);
-    printf("r_cell.y = %lf\tn_cell_1d.y = %d\n",
-      sys.r_cell.y, sys.n_cell_1d.y);
 
     fact = (int) (sys.length.z / sys.r_c + 1e-9);
     sys.r_cell.z = (double) (sys.length.z / fact);
     sys.n_cell_1d.z = (int) (sys.length.z / sys.r_cell.z + 1e-9);
 
-    printf("r_cell.z = %lf\tn_cell_1d.z = %d\n",
-      sys.r_cell.z, sys.n_cell_1d.z);
     // Allocate memory for the head of chain array
     sys.hoc = (int ***) malloc((sys.n_cell_1d.x+1)*sizeof(int **));
     sys.hoc_copy = (int ***) malloc((sys.n_cell_1d.x+1)*sizeof(int **));
@@ -158,7 +128,7 @@ void init_param(void) {
 }
 
 void init_part(void) {
-  int i;
+  int i, inside_pore;
   double x, y, z, d;
 
   for (i = 0; i < sys.n_solvent; i++) {
@@ -173,14 +143,16 @@ void init_part(void) {
 
       // Check for wall overlap
       check_wall(part_dpd[i].r);
-    } while (sys.wall_overlap);
+      // Check for pore overlap
+      inside_pore = check_pore(part_dpd[i].r);
+    } while (sys.wall_overlap || sys.pore_overlap || inside_pore);
   }
 
   part_mon = (Particle *) calloc(sys.n_mon, sizeof(Particle));
 
   for (i = 0; i < sys.n_mon; i++) {
-    part_mon[i].r.x = sys.length.x/2;
-    part_mon[i].r.y = sys.length.y/2;
+    part_mon[i].r.x = (sys.pore_max.x - sys.pore_radius) / 2;
+    part_mon[i].r.y = (sys.pore_max.y - sys.pore_radius) / 2;
     part_mon[i].r.z = sys.pol_init_z + i*sys.pol_init_bl;
 
     periodic_bc_r(&part_mon[i].r);
@@ -193,7 +165,7 @@ void init_part(void) {
   if (sys.calc_list) {
     new_list();
 
-    for (i = 0; i < sys.n_dpd; i++) {
+    for (i = 0; i < sys.n_solvent; i++) {
       part_dpd[i].E = calc_energy_dpd(i);
       part_dpd[i].Eo = part_dpd[i].E;
     }
@@ -205,7 +177,7 @@ void init_part(void) {
   } else {
     calc_energy_brute();
 
-    for (i = 0; i < sys.n_dpd; i++) {
+    for (i = 0; i < sys.n_solvent; i++) {
       part_dpd[i].Eo = part_dpd[i].E;
     }
 
@@ -231,13 +203,9 @@ void init_pore(void) {
       for (i = 0; i < sys.n_pore_1d.x; i++) {
         if (i == 0 || i == sys.n_pore_1d.x-1) {
           part_dpd[n].r = r;
-          printf("dpd[%d].r = %lf,%lf,%lf\n",
-            n,part_dpd[n].r.x,part_dpd[n].r.y,part_dpd[n].r.z);
           n++;
         } else if (j == 0 || j == sys.n_pore_1d.y-1) {
           part_dpd[n].r = r;
-          printf("dpd[%d].r = %lf,%lf,%lf\n",
-            n,part_dpd[n].r.x,part_dpd[n].r.y,part_dpd[n].r.z);
           n++;
         }
         r.x += sys.r_pore;
@@ -267,13 +235,9 @@ void init_wall(void) {
 
         if (r.x < sys.pore_min.x || r.x > sys.pore_max.x+1e-9) {
           part_dpd[n].r = r;
-          printf("dpd[%d].r = %lf,%lf,%lf\n",
-            n,part_dpd[n].r.x,part_dpd[n].r.y,part_dpd[n].r.z);
           n++;
         } else if (r.y < sys.pore_min.y || r.y > sys.pore_max.y+1e-9) {
           part_dpd[n].r = r;
-          printf("dpd[%d].r = %lf,%lf,%lf\n",
-            n,part_dpd[n].r.x,part_dpd[n].r.y,part_dpd[n].r.z);
           n++;
         }
 
@@ -298,9 +262,8 @@ void init_wall(void) {
     r.z += sys.r_wall;
   }
 
-  // Add the layers to the nanopore
+  // Add layers to the nanopore
   if (sys.n_layers > 0) {
-
     r.x = sys.pore_min.x - sys.n_layers*sys.r_wall;
     r.y = sys.pore_min.y - sys.n_layers*sys.r_wall;
     r.z = sys.pore_min.z;
@@ -310,23 +273,15 @@ void init_wall(void) {
         for (i = -sys.n_layers; i < sys.n_pore_1d.x+sys.n_layers; i++) {
           if (i < 0 || i > sys.n_pore_1d.x-1) {
             part_dpd[n].r = r;
-          printf("\tdpd[%d].r = %lf,%lf,%lf\n",
-            n,part_dpd[n].r.x,part_dpd[n].r.y,part_dpd[n].r.z);
             n++;
           } else if (j < 0 || j > sys.n_pore_1d.y-1) {
             part_dpd[n].r = r;
-          printf("\tdpd[%d].r = %lf,%lf,%lf\n",
-            n,part_dpd[n].r.x,part_dpd[n].r.y,part_dpd[n].r.z);
             n++;
           }
 
           if (i < 0 || i >= sys.n_pore_1d.x-1) {
-            // printf("\ti=%d < 0 || >= %d\n",
-              // i,sys.n_pore_1d.x-1);
             r.x += sys.r_wall;
           } else {
-            // printf("\ti=%d >= 0 && < %d\n",
-              // i,sys.n_pore_1d.x-1);
              r.x += sys.r_pore;
           }
         }
