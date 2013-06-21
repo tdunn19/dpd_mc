@@ -9,14 +9,17 @@ void input(void) {
     printf("Cannot open file: dpd.inp\n");
   } else {
     fscanf(fp, "%d%*s", &sys.n_mon);
-    fscanf(fp, "%lf%*s", &sys.density_s);
-    fscanf(fp, "%d%*s", &sys.calc_list);
+    fscanf(fp, "%lf%*s", &sys.bl_init);
     fscanf(fp, "%lf%*s", &sys.length.x);
     fscanf(fp, "%lf%*s", &sys.length.y);
     fscanf(fp, "%lf%*s", &sys.length.z);
+    fscanf(fp, "%lf%*s", &sys.density_s);
     fscanf(fp, "%lf%*s", &sys.density_w);
     fscanf(fp, "%d%*s", &sys.n_layers);
     fscanf(fp, "%lf%*s", &sys.pore_radius);
+    fscanf(fp, "%d%*s", &sys.n_wins);
+    fscanf(fp, "%d%*s", &sys.n_bins);
+    fscanf(fp, "%d%*s", &sys.iQ_init);
     fscanf(fp, "%lf%*s", &sys.r_c);
     fscanf(fp, "%lf%*s", &sys.dr_max_dpd);
     fscanf(fp, "%lf%*s", &sys.dr_max_mon);
@@ -24,8 +27,7 @@ void input(void) {
     fscanf(fp, "%lf%*s", &sys.a_ms);
     fscanf(fp, "%lf%*s", &sys.a_ss);
     fscanf(fp, "%lf%*s", &sys.a_sw);
-    fscanf(fp, "%lf%*s", &sys.pol_init_z);
-    fscanf(fp, "%lf%*s", &sys.pol_init_bl);
+    fscanf(fp, "%d%*s", &sys.calc_list);
     fscanf(fp, "%d%*s", &sys.n_steps);
     fscanf(fp, "%lf%*s", &sys.mc_ratio);
     fscanf(fp, "%lf%*s", &sys.temp);
@@ -40,13 +42,13 @@ void write_log(void) {
   printf("\nDPD Monte Carlo Simulation Program");
   printf("\n\n");
   printf("n_mon       \t\t\t%10d\n", sys.n_mon);
-  printf("density_s   \t\t\t%10.5lf\n", sys.density_s);
-  printf("n_solvent   \t\t\t%10d\n", sys.n_solvent);
-  printf("calc_list   \t\t\t%10d\n\n", sys.calc_list);
+  printf("bl_init     \t\t\t%10.5lf\n\n", sys.bl_init);
   printf("length_x    \t\t\t%10.5lf\n", sys.length.x);
   printf("length_y    \t\t\t%10.5lf\n", sys.length.y);
   printf("length_z    \t\t\t%10.5lf\n", sys.length.z);
-  printf("volume      \t\t\t%10.5lf\n\n", sys.volume);
+  printf("volume      \t\t\t%10.5lf\n", sys.volume);
+  printf("density_s   \t\t\t%10.5lf\n", sys.density_s);
+  printf("n_solvent   \t\t\t%10d\n\n", sys.n_solvent);
   printf("density_w   \t\t\t%10.5lf\n", sys.density_w);
   printf("n_layers    \t\t\t%10d\n", sys.n_layers);
   printf("r_wall      \t\t\t%10.5lf\n", sys.r_wall);
@@ -55,7 +57,11 @@ void write_log(void) {
   printf("pore_radius \t\t\t%10.5lf\n", sys.pore_radius);
   printf("r_pore      \t\t\t%10.5lf\n", sys.r_pore);
   printf("n_pore      \t\t\t%10d\n", sys.n_pore);
-  printf("pore_volume \t\t\t%10.5lf\n\n", sys.pore_volume);
+  printf("pore_volume \t\t\t%10.5lf\n", sys.pore_volume);
+  printf("n_wins      \t\t\t%10d\n", sys.n_wins);
+  printf("window_width\t\t\t%10.5lf\n", sys.window_width);
+  printf("n_bins      \t\t\t%10d\n", sys.n_bins);
+  printf("bin_width   \t\t\t%10.5lf\n\n", sys.bin_width);
   printf("r_c         \t\t\t%10.5lf\n", sys.r_c);
   printf("dr_max_dpd  \t\t\t%10.5lf\n", sys.dr_max_dpd);
   printf("dr_max_mon  \t\t\t%10.5lf\n\n", sys.dr_max_mon);
@@ -63,8 +69,7 @@ void write_log(void) {
   printf("a_ms        \t\t\t%10.5lf\n", sys.a_ms);
   printf("a_ss        \t\t\t%10.5lf\n", sys.a_ss);
   printf("a_sw        \t\t\t%10.5lf\n\n", sys.a_sw);
-  printf("pol_init_z  \t\t\t%10.5lf\n", sys.pol_init_z);
-  printf("pol_init_bl \t\t\t%10.5lf\n\n", sys.pol_init_bl);
+  printf("calc_list   \t\t\t%10d\n", sys.calc_list);
   printf("nsteps      \t\t\t%10d\n", sys.n_steps);
   printf("mc_ratio    \t\t\t%10.5lf\n", sys.mc_ratio);
   printf("temp        \t\t\t%10.5lf\n", sys.temp);
@@ -109,7 +114,7 @@ void print_stats(void) {
 }
 
 void write_mon(void) {
-  int i;
+  int i, bin;
   FILE *fp;
 
   if ((fp = fopen("energy.dat", "w")) == NULL) {
@@ -152,6 +157,23 @@ void write_mon(void) {
   } else {
     for (i = 0; i < sys.monitor_step; i++) {
       fprintf(fp, "%d  %lf\n", i, sys.mon.bond_length[i]);
+    }
+  }
+
+  if ((fp = fopen("Q.dat", "w")) == NULL) {
+    printf("Cannot open file: Q.dat\n");
+  } else {
+    for (i = 0; i < sys.monitor_step; i++) {
+      fprintf(fp, "%d  %lf\n", i, sys.mon.Q[i]);
+    }
+  }
+
+  if ((fp = fopen("PQ.dat", "w")) == NULL) {
+    printf("Cannot open file: PQ.dat\n");
+  } else {
+    for (i = 0; i < sys.n_bins; i++) {
+      bin = ((sys.iQ_init-1) * sys.n_bins / 2) + i;
+      fprintf(fp, "%d  %d\n", bin, sys.bin_count[bin]);
     }
   }
 }

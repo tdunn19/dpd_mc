@@ -9,9 +9,11 @@
 void initialize(void) {
   input();
   init_param();
-  init_part();
+  init_polymer();
   init_pore();
   init_wall();
+  init_solvent();
+  init_energy();
   init_monitor();
   init_stats();
   write_log();
@@ -25,6 +27,11 @@ void init_param(void) {
   sys.n_accept_solvent = 0;
   sys.n_attempt_mon = 0;
   sys.n_attempt_solvent = 0;
+
+  // System flags
+  sys.bond_break = 0;
+  sys.wall_overlap = 0;
+  sys.new_window = 0;
 
   // Wall particle spacing
   sys.r_wall = pow(sys.density_w, -1.0/3.0);
@@ -42,6 +49,7 @@ void init_param(void) {
   sys.pore_max.z = sys.length.z/2;
   sys.n_pore_1d.z = (int) (sys.pore_max.z / sys.r_wall) + 1;
   sys.pore_min.z = sys.pore_max.z - (sys.n_pore_1d.z-1)*sys.r_wall;
+  sys.pore_length = sys.pore_max.z - sys.pore_min.z;
 
   // Wall bounds
   sys.n_wall_1d.z = sys.n_layers + 1;
@@ -97,6 +105,18 @@ void init_param(void) {
   sys.r_0 = sys.r_max - sys.r_eq;
   sys.k_fene = 40;
 
+  // Windows and bins in the nanopore
+  sys.window_width = 2.0 / (sys.n_wins+1);
+  sys.bin_width = sys.window_width / sys.n_bins;
+  sys.Q_init = sys.iQ_init * sys.window_width / 2;
+  sys.Q_min = (sys.win_init-1) * sys.window_width / 2;
+  sys.Q_max = (sys.win_init+1) * sys.window_width / 2;
+
+  sys.bin_count = (int *) malloc((sys.n_bins)*sizeof(int *));
+  for (i = 0; i < sys.n_bins; i++) {
+    sys.bin_count = 0;
+  }
+
   if (sys.calc_list) {
     // Determine cell size and the number of cells
     fact = (int) (sys.length.x / sys.r_c + 1e-9);
@@ -127,7 +147,60 @@ void init_param(void) {
   }
 }
 
-void init_part(void) {
+void init_polymer(void) {
+  int i, count;
+  double Q_test, z_min, z_max, z_init;
+
+  part_mon = (Particle *) calloc(sys.n_mon, sizeof(Particle));
+
+  for (i = 0; i < sys.n_mon; i++) {
+    part_mon[i].r.x = sys.pore_max.x - sys.pore_radius;
+    part_mon[i].r.y = sys.pore_max.y - sys.pore_radius;
+  }
+
+  z_max = sys.pore_max.z + sys.bl_init*(sys.n_mon-1);
+  z_min = sys.pore_min.z;
+
+  count = 0;
+  do {
+    printf("\nattempt %d\n", count+1);
+
+    z_init = (z_max + z_min) / 2;
+
+    for (i = 0; i < sys.n_mon; i++) {
+      part_mon[i].r.z = z_init - i * sys.bl_init;
+      printf("mon[%d].r = %lf,%lf,%lf\n",
+        i, part_mon[i].r.x,part_mon[i].r.y,part_mon[i].r.z);
+    }
+
+    Q_test = calc_q();
+    printf("\tQ_test = %lf\t", Q_test);
+
+    if (Q_test <= sys.Q_min) {
+      printf("<= %lf\n", sys.Q_min);
+      z_min = z_init;
+    } else if (Q_test >= sys.Q_max) {
+      printf(">= %lf\n", sys.Q_max);
+      z_max = z_init;
+    }
+
+    count++;
+    if (count > 100) {
+      printf("Problem positioning the polymer\n");
+      exit(0);
+    }
+  } while (Q_test <= sys.Q_min || Q_test >= sys.Q_max);
+
+  for (i = 0; i < sys.n_mon; i++) {
+    periodic_bc_r(&part_mon[i].r);
+
+    part_mon[i].ro.x = part_mon[i].r.x;
+    part_mon[i].ro.y = part_mon[i].r.y;
+    part_mon[i].ro.z = part_mon[i].r.z;
+  }
+}
+
+void init_solvent(void) {
   int i, inside_pore;
   double x, y, z, d;
 
@@ -140,53 +213,14 @@ void init_part(void) {
       part_dpd[i].ro.x = part_dpd[i].r.x;
       part_dpd[i].ro.y = part_dpd[i].r.y;
       part_dpd[i].ro.z = part_dpd[i].r.z;
+      printf("solvent[%d].r = %lf,%lf,%lf\n",
+        i,part_dpd[i].r.x,part_dpd[i].r.y,part_dpd[i].r.z);
 
       // Check for wall overlap
       check_wall(part_dpd[i].r);
-      // Check for pore overlap
-      inside_pore = check_pore(part_dpd[i].r);
-    } while (sys.wall_overlap || sys.pore_overlap || inside_pore);
+    } while (sys.wall_overlap || check_pore(part_dpd[i].r));
   }
 
-  part_mon = (Particle *) calloc(sys.n_mon, sizeof(Particle));
-
-  for (i = 0; i < sys.n_mon; i++) {
-    part_mon[i].r.x = (sys.pore_max.x - sys.pore_radius) / 2;
-    part_mon[i].r.y = (sys.pore_max.y - sys.pore_radius) / 2;
-    part_mon[i].r.z = sys.pol_init_z + i*sys.pol_init_bl;
-
-    periodic_bc_r(&part_mon[i].r);
-
-    part_mon[i].ro.x = part_mon[i].r.x;
-    part_mon[i].ro.y = part_mon[i].r.y;
-    part_mon[i].ro.z = part_mon[i].r.z;
-  }
-
-  if (sys.calc_list) {
-    new_list();
-
-    for (i = 0; i < sys.n_solvent; i++) {
-      part_dpd[i].E = calc_energy_dpd(i);
-      part_dpd[i].Eo = part_dpd[i].E;
-    }
-
-    for (i = 0; i < sys.n_mon; i++) {
-      part_mon[i].E = calc_energy_mon(i);
-      part_mon[i].Eo = part_mon[i].E;
-    }
-  } else {
-    calc_energy_brute();
-
-    for (i = 0; i < sys.n_solvent; i++) {
-      part_dpd[i].Eo = part_dpd[i].E;
-    }
-
-    for (i = 0; i < sys.n_mon; i++) {
-      part_mon[i].Eo = part_mon[i].E;
-    }
-  }
-
-  sys.energy = total_energy();
 }
 
 void init_pore(void) {
@@ -203,8 +237,12 @@ void init_pore(void) {
       for (i = 0; i < sys.n_pore_1d.x; i++) {
         if (i == 0 || i == sys.n_pore_1d.x-1) {
           part_dpd[n].r = r;
+          printf("pore[%d].r = %lf,%lf,%lf\n",
+            n,part_dpd[n].r.x,part_dpd[n].r.y,part_dpd[n].r.z);
           n++;
         } else if (j == 0 || j == sys.n_pore_1d.y-1) {
+          printf("pore[%d].r = %lf,%lf,%lf\n",
+            n,part_dpd[n].r.x,part_dpd[n].r.y,part_dpd[n].r.z);
           part_dpd[n].r = r;
           n++;
         }
@@ -235,8 +273,12 @@ void init_wall(void) {
 
         if (r.x < sys.pore_min.x || r.x > sys.pore_max.x+1e-9) {
           part_dpd[n].r = r;
+          printf("wall[%d].r = %lf,%lf,%lf\n",
+            n,part_dpd[n].r.x,part_dpd[n].r.y,part_dpd[n].r.z);
           n++;
         } else if (r.y < sys.pore_min.y || r.y > sys.pore_max.y+1e-9) {
+          printf("wall[%d].r = %lf,%lf,%lf\n",
+            n,part_dpd[n].r.x,part_dpd[n].r.y,part_dpd[n].r.z);
           part_dpd[n].r = r;
           n++;
         }
@@ -273,16 +315,20 @@ void init_wall(void) {
         for (i = -sys.n_layers; i < sys.n_pore_1d.x+sys.n_layers; i++) {
           if (i < 0 || i > sys.n_pore_1d.x-1) {
             part_dpd[n].r = r;
+          printf("wall[%d].r = %lf,%lf,%lf\n",
+            n,part_dpd[n].r.x,part_dpd[n].r.y,part_dpd[n].r.z);
             n++;
           } else if (j < 0 || j > sys.n_pore_1d.y-1) {
             part_dpd[n].r = r;
+          printf("wall[%d].r = %lf,%lf,%lf\n",
+            n,part_dpd[n].r.x,part_dpd[n].r.y,part_dpd[n].r.z);
             n++;
           }
 
           if (i < 0 || i >= sys.n_pore_1d.x-1) {
             r.x += sys.r_wall;
           } else {
-             r.x += sys.r_pore;
+            r.x += sys.r_pore;
           }
         }
 
@@ -296,30 +342,30 @@ void init_wall(void) {
       }
 
       r.y = sys.pore_min.y - sys.n_layers*sys.r_wall;
-
       r.z += sys.r_wall;
     }
   }
 }
 
 void init_monitor(void) {
-  int nsize;
+  int n_size;
 
-  nsize = (sys.n_steps / sys.freq_monitor) + 1;
+  n_size = (sys.n_steps / sys.freq_monitor) + 1;
 
-  sys.mon.energy = (double *) calloc(nsize, sizeof(double));
-  sys.mon.re2 = (double *) calloc(nsize, sizeof(double));
-  sys.mon.rex = (double *) calloc(nsize, sizeof(double));
-  sys.mon.rey = (double *) calloc(nsize, sizeof(double));
-  sys.mon.rez = (double *) calloc(nsize, sizeof(double));
-  sys.mon.rg2 = (double *) calloc(nsize, sizeof(double));
-  sys.mon.rgx = (double *) calloc(nsize, sizeof(double));
-  sys.mon.rgy = (double *) calloc(nsize, sizeof(double));
-  sys.mon.rgz = (double *) calloc(nsize, sizeof(double));
-  sys.mon.cmx = (double *) calloc(nsize, sizeof(double));
-  sys.mon.cmy = (double *) calloc(nsize, sizeof(double));
-  sys.mon.cmz = (double *) calloc(nsize, sizeof(double));
-  sys.mon.bond_length = (double *) calloc(nsize, sizeof(double));
+  sys.mon.energy = (double *) calloc(n_size, sizeof(double));
+  sys.mon.re2 = (double *) calloc(n_size, sizeof(double));
+  sys.mon.rex = (double *) calloc(n_size, sizeof(double));
+  sys.mon.rey = (double *) calloc(n_size, sizeof(double));
+  sys.mon.rez = (double *) calloc(n_size, sizeof(double));
+  sys.mon.rg2 = (double *) calloc(n_size, sizeof(double));
+  sys.mon.rgx = (double *) calloc(n_size, sizeof(double));
+  sys.mon.rgy = (double *) calloc(n_size, sizeof(double));
+  sys.mon.rgz = (double *) calloc(n_size, sizeof(double));
+  sys.mon.cmx = (double *) calloc(n_size, sizeof(double));
+  sys.mon.cmy = (double *) calloc(n_size, sizeof(double));
+  sys.mon.cmz = (double *) calloc(n_size, sizeof(double));
+  sys.mon.bond_length = (double *) calloc(n_size, sizeof(double));
+  sys.mon.Q = (double *) calloc(n_size, sizeof(double));
 }
 
 void init_stats(void) {
@@ -337,4 +383,42 @@ void init_stats(void) {
   sys.stats[8].name = "Rg2y                   ";
   sys.stats[9].name = "Rg2z                   ";
   sys.stats[10].name = "Bond_length            ";
+}
+
+void init_energy(void) {
+  if (sys.calc_list) {
+    new_list();
+
+    for (i = 0; i < sys.n_dpd; i++) {
+      part_dpd[i].E = calc_energy_dpd(i);
+      part_dpd[i].Eo = part_dpd[i].E;
+    }
+
+    for (i = 0; i < sys.n_mon; i++) {
+      part_mon[i].E = calc_energy_mon(i);
+      part_mon[i].Eo = part_mon[i].E;
+    }
+  } else {
+    calc_energy_brute();
+
+    for (i = 0; i < sys.n_dpd; i++) {
+      part_dpd[i].Eo = part_dpd[i].E;
+    }
+
+    for (i = 0; i < sys.n_mon; i++) {
+      part_mon[i].Eo = part_mon[i].E;
+    }
+  }
+
+  sys.energy = 0;
+
+  for (i = 0; i < sys.n_dpd; i++) {
+    sys.energy += part_dpd[i].E;
+  }
+
+  for (i = 0; i < sys.n_mon; i++) {
+    sys.energy += part_mon[i].E;
+  }
+
+  sys.energy_old = sys.energy;
 }

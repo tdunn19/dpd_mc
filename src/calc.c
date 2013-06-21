@@ -26,6 +26,9 @@ void sample(void) {
     part_mon[i].r.z = part_mon[i-1].r.z + dr.z;
   }
 
+  // Find a better way to do this step
+  sys.mon.Q[sys.monitor_step] = calc_q();
+
   calc_cm();
   calc_re();
   calc_rg();
@@ -56,8 +59,33 @@ void monitor(void) {
   sys.mon.rgy[sys.monitor_step] = sqrt(RG2y.now);
   sys.mon.rgz[sys.monitor_step] = sqrt(RG2z.now);
   sys.mon.bond_length[sys.monitor_step] = BL.now;
+  // sys.mon.Q[sys.monitor_step] = calc_q();
 
   sys.monitor_step += 1;
+}
+
+double calc_q(void) {
+  int i;
+  double Q;
+
+  Q = 0;
+  sys.n_cis = 0;
+  sys.n_trans = 0;
+
+  for (i = 0; i < sys.n_mon; i++) {
+    if (part_mon[i].r.z > sys.pore_max.z) {
+      Q += 1.0;
+      sys.n_trans += 1;
+    } else if (part_mon[i].r.z < sys.pore_min.z) {
+      sys.n_cis += 1;
+    } else {
+      Q += part_mon[i].r.z / sys.pore_length;
+    }
+  }
+
+  Q /= sys.n_mon;
+
+  return Q;
 }
 
 void calc_cm(void) {
@@ -249,30 +277,42 @@ void check_wall(Vector r) {
       sys.wall_overlap = 1;
     }
   }
-}
 
-int check_pore(Vector r) {
-  sys.pore_overlap = 0;
-
+  // Pore wall overlap
   if (r.z >= sys.pore_min.z && r.z <= sys.pore_max.z) {
     if ((r.x <= sys.pore_min.x && r.x >= sys.pore_min.x-(sys.n_layers*sys.r_wall))
       || (r.x >= sys.pore_max.x && r.x <= sys.pore_max.x+(sys.n_layers*sys.r_wall))) {
       if ((r.y <= sys.pore_min.y && r.y >= sys.pore_min.y-(sys.n_layers*sys.r_wall))
         || (r.y >= sys.pore_max.y && r.y <= sys.pore_max.y+(sys.n_layers*sys.r_wall))) {
-        sys.pore_overlap = 1;
+        sys.wall_overlap = 1;
       }
     }
   }
 
-  if (!sys.pore_overlap) {
-    if ((r.x > sys.pore_min.x && r.x < sys.pore_max.x)
-      && (r.y > sys.pore_min.y && r.y < sys.pore_min.y)
-      && (r.z > sys.pore_min.z && r.z < sys.pore_max.z)) {
-      return 1;
-    } else {
-      return 0;
-    }
+}
+
+int check_pore(Vector r) {
+  if ((r.x > sys.pore_min.x && r.x < sys.pore_max.x)
+    && (r.y > sys.pore_min.y && r.y < sys.pore_min.y)
+    && (r.z > sys.pore_min.z && r.z < sys.pore_max.z)) {
+    return 1;
   } else {
     return 0;
   }
+}
+
+void check_window() {
+  double Q;
+
+  sys.new_window = 0;
+
+  Q = calc_q();
+
+  if (Q < sys.Q_min) {
+    sys.new_window = 1;
+  } else if (Q > sys.Q_max) {
+    sys.new_window = 1;
+  }
+
+
 }

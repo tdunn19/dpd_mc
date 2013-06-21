@@ -38,15 +38,17 @@ typedef struct stats_type {
 
 typedef struct monitor_type {
   double *energy, *re2, *rex, *rey, *rez,
-    *rg2, *rgx, *rgy, *rgz, *cmx, *cmy, *cmz, *bond_length;
+    *rg2, *rgx, *rgy, *rgz, *cmx, *cmy, *cmz, *bond_length, *Q;
 } Monitor;
 
 typedef struct parameter_type {
   int
+    *bin_count,
     bond_break,
     calc_list,
     freq_monitor,
     freq_sample,
+    iQ_init,
     iseed,
     ***hoc,
     ***hoc_copy,
@@ -55,6 +57,8 @@ typedef struct parameter_type {
     n_accept_solvent,
     n_attempt_mon,
     n_attempt_solvent,
+    n_bins,
+    n_cis,
     n_dpd,
     n_layers,
     n_mon,
@@ -62,26 +66,35 @@ typedef struct parameter_type {
     n_solvent,
     n_stats,
     n_steps,
+    n_trans,
     n_wall,
-    pore_overlap,
-    wall_overlap;
+    n_wins,
+    new_window,
+    pol_fixed,
+    wall_overlap,
+    win_init;
 
   double
     a_mm,
     a_ms,
     a_ss,
     a_sw,
+    bin_width,
+    bl_init,
     density_s,
     density_w,
     dr_max_dpd,
     dr_max_mon,
     energy,
+    energy_old,
     k_fene,
     mc_ratio,
-    pol_init_bl,
-    pol_init_z,
+    pore_length,
     pore_radius,
     pore_volume,
+    Q_init,
+    Q_max,
+    Q_min,
     r_c,
     r_eq,
     r_max,
@@ -90,7 +103,8 @@ typedef struct parameter_type {
     r_0,
     temp,
     volume,
-    wall_volume;
+    wall_volume,
+    window_width;
 
   Ivector n_cell_1d, n_pore_1d, n_wall_1d;
   Vector length, pore_max, pore_min, r_cell, wall_max, wall_min;
@@ -115,6 +129,7 @@ extern double  calc_energy_dpd(int i);
 extern double  calc_energy_mon(int i);
 extern void    calc_cm(void);
 extern void    calc_pressure(void);
+extern double  calc_q(void);
 extern void    calc_re(void);
 extern void    calc_rg(void);
 extern void    check_bond(int i);
@@ -122,12 +137,13 @@ extern int     check_cell(Vector, Vector);
 extern int     check_pore(Vector);
 extern void    check_wall(Vector);
 extern double  energy_c(Vector);
-extern double  energy_fene(int i, int j);;
+extern double  energy_fene(int i, int j);
 extern void    initialize(void);
 extern void    init_monitor(void);
 extern void    init_param(void);
-extern void    init_part(void);
+extern void    init_polymer(void);
 extern void    init_pore(void);
+extern void    init_solvent(void);
 extern void    init_stats(void);
 extern void    init_wall(void);
 extern void    input(void);

@@ -30,12 +30,20 @@ double calc_energy_dpd(int i) {
         while (j != -1) {
           if (i != j) {
             dr = vdist(part_dpd[i].r, part_dpd[j].r);
-            if (j < sys.n_solvent) {
-              // Solvent-solvent interaction
-              E_ss += energy_c(dr);
+
+            if (i < sys.n_solvent) {
+              if (j < sys.n_solvent) {
+                // Solvent-solvent interaction
+                E_ss += energy_c(dr):
+              } else {
+                // Solvent-wall interaction
+                E_sw += energy_c(dr);
+              }
             } else {
-              // Solvent-wall interaction
-              E_sw += energy_c(dr);
+              if (j < sys.n_solvent) {
+                // Wall-solvent interaction
+                E_sw += energy_c(dr);
+              }
             }
           }
           // Next particle in the chain
@@ -68,7 +76,7 @@ double calc_energy_mon(int i) {
     E_fene += energy_fene(i, i-1);
   }
   // If not the last monomer in the chain
-  if (i != (sys.n_mon - 1)) {
+  if (i != (sys.n_mon-1)) {
     E_fene += energy_fene(i, i+1);
   }
   E_fene *= sys.k_fene / 2;

@@ -30,7 +30,7 @@ Edit src/dpd.inp to change parameters. The following is a description of all the
     length_z - in the z (long enough to fit the polymer)
 
     density_w - density of wall particles (3)
-    n_layers - number of wall layers (2)
+    n_layers - number of extra wall layers (1)
 
     pore_radius - half side length of the rectangular pore (1.0)
 

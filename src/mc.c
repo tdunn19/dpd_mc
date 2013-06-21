@@ -107,12 +107,10 @@ void move_solvent(int i) {
   periodic_bc_r(&part_dpd[i].r);
   // Check for wall overlap
   check_wall(part_dpd[i].r);
-  // Check for pore overlap
-  check_pore(part_dpd[i].r);
 
-  if (sys.calc_list && !sys.wall_overlap && !sys.pore_overlap) {
+  if (sys.calc_list && !sys.wall_overlap) {
     for (j = 0; j < sys.n_mon; j++) {
-      part_mon[j].Eo = part_mon[j].E;
+      // part_mon[j].Eo = part_mon[j].E;
       part_mon[j].E = calc_energy_mon(j);
     }
 
@@ -132,7 +130,7 @@ void move_solvent(int i) {
           j = sys.hoc[jx][jy][jz];
 
           while (j != -1) {
-            part_dpd[j].Eo = part_dpd[j].E;
+            // part_dpd[j].Eo = part_dpd[j].E;
             part_dpd[j].E = calc_energy_dpd(j);
 
             // Next particle in the linked list
@@ -214,7 +212,7 @@ void move_solvent(int i) {
         }
       }
     }
-  } else if (!sys.wall_overlap && !sys.pore_overlap) {
+  } else if (!sys.wall_overlap) {
     calc_energy_brute();
   }
 }
@@ -237,12 +235,12 @@ void move_monomer(int i) {
   check_bond(i);
   // Check for wall overlap
   check_wall(part_mon[i].r);
-  // Check for pore overlap
-  check_pore(part_mon[i].r);
+  // Check for new window
+  check_window();
 
-  if (sys.calc_list && !sys.bond_break && !sys.wall_overlap && !sys.pore_overlap) {
+  if (sys.calc_list && !sys.bond_break && !sys.wall_overlap && !sys.new_window) {
     for (j = 0; j < sys.n_mon; j++) {
-      part_mon[j].Eo = part_mon[j].E;
+      // part_mon[j].Eo = part_mon[j].E;
       part_mon[j].E = calc_energy_mon(j);
     }
 
@@ -344,7 +342,7 @@ void move_monomer(int i) {
         }
       }
     }
-  } else if (!sys.bond_break && !sys.wall_overlap && !sys.pore_overlap) {
+  } else if (!sys.bond_break && !sys.wall_overlap) {
     calc_energy_brute();
   }
 }
@@ -352,11 +350,11 @@ void move_monomer(int i) {
 int accept_move(void) {
   double En, Eo;
 
-  if (sys.bond_break || sys.wall_overlap || sys.pore_overlap) {
+  if (sys.bond_break || sys.wall_overlap || sys.new_window) {
     // Reject the movement
     sys.bond_break = 0;
     sys.wall_overlap = 0;
-    sys.pore_overlap = 0;
+    sys.new_window = 0;
     return 0;
   } else {
     Eo = sys.energy;
