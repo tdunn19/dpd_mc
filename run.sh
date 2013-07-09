@@ -1,41 +1,25 @@
 #!/bin/bash
 
-nmon=10
-density_s=1
-calc="cell"
-job=1
+echo "Job $1" > output"$1".log
 
-dir=/home/tdunn/dpd
-scratch=/home/tdunn/scratch/dpd
+for ((window=$2;window<$3;window++)); do
 
-cd "$dir"/src/temp/'n'$nmon-'d'$density_s'-'$calc'-'$job''
+    echo "Window $window" >> output"$1".log
+    sed -i "s/.*iQ_init.*/$window\t\t\tiQ_init/g" dpd.inp
 
-echo -e 'n'$nmon'-d'$density_s'-'$calc'-'$job'' > output"$job".log
+    # Delete existing random seed, generate a new one and add it to input file
+    sed -i '$d' dpd.inp
+    ./seed.exe >> dpd.inp
 
-for u in {1..5}; do
+    ./dpd.run >> output"$1".log
 
-	# Generate a random seed and add it to the input file
-	sed -i -e "30d" dpd.inp
-	./seed.exe >> dpd.inp
-
-	echo 'Run '$u'.' >> output"$job".log
-	./dpd.run >> output"$job".log
-
-    mv energy.dat energy"$u".dat
-    mv re.dat re"$u".dat
-    mv rg.dat rg"$u".dat
-    mv bond_length.dat bond_length"$u".dat
-	
-    mv energy"$u".dat "$scratch"/"$calc"/n"$nmon"/d"$density_s"/energy
-	mv re"$u".dat "$scratch"/"$calc"/n"$nmon"/d"$density_s"/re
-	mv rg"$u".dat "$scratch"/"$calc"/n"$nmon"/d"$density_s"/rg
-	mv bond_length"$u".dat "$scratch"/"$calc"/n"$nmon"/d"$density_s"/bond_length
-
-	echo 'Done '$u'.'
+    # Move output files
+    mv PQ.dat "$4"/PQ/PQ"$window".dat
+    mv Q.dat "$4"/Q/Q"$window".dat
+    mv energy.dat "$4"/energy/energy"$window".dat
+    mv re.dat "$4"/re/re"$window".dat
+    mv rg.dat "$4"/rg/rg"$window".dat
+    cp dpd.inp "$4"/input/dpd"$window".inp
 done
 
-cp dpd.inp dpd"$job".inp 
-mv dpd"$job".inp "$scratch"/"$calc"/n"$nmon"/d"$density_s"/input
-
-echo 'Done n'$nmon'-d'$density_s'-'$calc'-'$job'' >> output"$job".log
-mv output"$job".log "$scratch"/"$calc"/n"$nmon"/d"$density_s"/output
+cp output"$1".log "$4"/output

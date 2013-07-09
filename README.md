@@ -22,17 +22,22 @@ To compile and run:
 Edit src/dpd.inp to change parameters. The following is a description of all the input parameters as well as typical values in brackets:
 
     n_mon - the number of monomers
-    density_s - the solvent density (3)
-    calc_list - 1 to use cell list method, 0 to use brute force method of calculation
+    pol_init_bl - initial bond length of the polymer (0.5-1.0)
 
     length_x - system box length in the x (10)
     length_y - in the y (10)
     length_z - in the z (long enough to fit the polymer)
+    density_s - the solvent density (3)
 
     density_w - density of wall particles (3)
-    n_layers - number of extra wall layers (1)
+    n_layers - number of extra wall layers (2)
 
-    pore_radius - half side length of the rectangular pore (1.0)
+    pore_radius - half side length of the rectangular pore (1.0400415)
+    pore_length - longitudinal length of the nanopore (1.5)
+
+    n_wins - number of windows to divide the translocation coordinate Q into (99)
+    n_bins - number of bins to divide each window into (20)
+    iQ_init - which window to confine the polymer to
 
     r_c - cutoff radius of particle interaction (1.0)
     dr_max_dpd - max displacement of a dpd monte carlo move (0.2)
@@ -43,21 +48,47 @@ Edit src/dpd.inp to change parameters. The following is a description of all the
     a_ss - solvent-solvent interaction strength (25.0)
     a_sw - solvent-wall interaction strength (9.01)
 
-    pol_init_z - initial z coordinate of the first monomer (<length_z/2)
-    pol_init_bl - initial bond length of the polymer (0.5-1.0)
-
-    n_steps - number of monte carlo moves to attempt (1000000)
+    calc_list - 1 to use cell list method, 0 to use brute force method of calculation
+    n_steps - number of monte carlo moves to attempt (>1000000)
     mc_ratio - percentage of mc moves that will choose a monomer over a solvent particle (0.5)
     temp - system temperature (1.0)
     freq_sample - sample the system every x steps (100)
     freq_monitor - monitor the system every x steps (100)
 
-    iseed - random seed (change this before every run)
+    iseed - random integer seed (change this before every run)
 
 The run.sh and submit.sh scripts were written specifically for ACEnet clusters.
 
 Changelog
 ---------
+
+Version 4.2 (July 3, 2013)
+* a few changes to improve energy calculation efficiency
+    * old method was to recalculate all (or those within neighbor cells) particle energies and finding the new system energy from scratch
+    * new method simply finds the difference in energy dE of affected particles
+    * these differences are added to the system energy, then compared to the old system energy to determine acceptance
+* removed function total_energy, added function init_energy to some the energies at the beginning of the simulation
+* new parameter bin_count[sys.n_bins]: keeps a tally of how often a particle bin is measured
+* added calculation to write_mon for PQ.dat: the bin frequency file
+* sys.volume was being adjusted by too much (an extra layer worth of wall particles)
+* rewrote run.sh and submit.sh to accomodate binning
+    * run.sh now requires input on the command line
+    * i.e. ./run.sh job_number window_start window_end data_folder_path
+
+Version 4.1 (June 24, 2013)
+* the translocation coordinate Q has been added:
+    * new function calc_q: calculates translocation coordinate of the polymer and update new system parameters n_cis and n_trans
+    * new monitored quantity sys.mon.Q
+* implemented binning system:
+    * new input parameters n_wins and n_bins: define the number of windows and bins to use
+    * new parameters window_width and bin_width: define width of windows and bins
+    * new input parameter iQ_init: sets the window in which the polymer will be confined for the duration of the simulation
+    * new parameters Q_min and Q_max: based on iQ_init, define the bounds of the translocation coordinate
+    * rewrote function init_polymer: now uses a bisection method to position the polymer in the given window iQ_init
+    * new function check_window: if the polymer entered a new window, sets system flag to true (1) to reject the move
+* combined pore_overlap and wall_overlap system flags into wall_overlap
+* fixed a bug in check_wall: a < sign changed to >
+* typo in init.c: while (!sys.wall_overlap) should be while (sys.wall_overlap)
 
 Version 4.0 (June 17, 2013)
 * the nanopore has been added:
@@ -189,7 +220,9 @@ Version 1.0 (May 20, 2013)
 To-do list
 ----------
 
-*   add the Q coordinate and binning
+*   add monitored quantities re_cis and re_trans
+*   use lookup tables for taxing calculations
+*   add functionality for different solvent density on cis and trans side
 *   add functionality for a circular pore
 *   add functionality to completely remove the wall and/or polymer using just input parameters
 *   instead of using a global 3d array hoc_copy, use the memcpy function

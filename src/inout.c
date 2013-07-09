@@ -17,6 +17,7 @@ void input(void) {
     fscanf(fp, "%lf%*s", &sys.density_w);
     fscanf(fp, "%d%*s", &sys.n_layers);
     fscanf(fp, "%lf%*s", &sys.pore_radius);
+    fscanf(fp, "%lf%*s", &sys.pore_length);
     fscanf(fp, "%d%*s", &sys.n_wins);
     fscanf(fp, "%d%*s", &sys.n_bins);
     fscanf(fp, "%d%*s", &sys.iQ_init);
@@ -55,13 +56,15 @@ void write_log(void) {
   printf("n_wall      \t\t\t%10d\n", sys.n_wall);
   printf("wall_volume \t\t\t%10.5lf\n\n", sys.wall_volume);
   printf("pore_radius \t\t\t%10.5lf\n", sys.pore_radius);
+  printf("pore_length \t\t\t%10.5lf\n", sys.pore_length);
   printf("r_pore      \t\t\t%10.5lf\n", sys.r_pore);
   printf("n_pore      \t\t\t%10d\n", sys.n_pore);
   printf("pore_volume \t\t\t%10.5lf\n", sys.pore_volume);
   printf("n_wins      \t\t\t%10d\n", sys.n_wins);
   printf("window_width\t\t\t%10.5lf\n", sys.window_width);
   printf("n_bins      \t\t\t%10d\n", sys.n_bins);
-  printf("bin_width   \t\t\t%10.5lf\n\n", sys.bin_width);
+  printf("bin_width   \t\t\t%10.5lf\n", sys.bin_width);
+  printf("iQ_init     \t\t\t%10d\n\n", sys.iQ_init);
   printf("r_c         \t\t\t%10.5lf\n", sys.r_c);
   printf("dr_max_dpd  \t\t\t%10.5lf\n", sys.dr_max_dpd);
   printf("dr_max_mon  \t\t\t%10.5lf\n\n", sys.dr_max_mon);
@@ -70,7 +73,7 @@ void write_log(void) {
   printf("a_ss        \t\t\t%10.5lf\n", sys.a_ss);
   printf("a_sw        \t\t\t%10.5lf\n\n", sys.a_sw);
   printf("calc_list   \t\t\t%10d\n", sys.calc_list);
-  printf("nsteps      \t\t\t%10d\n", sys.n_steps);
+  printf("n_steps     \t\t\t%10d\n", sys.n_steps);
   printf("mc_ratio    \t\t\t%10.5lf\n", sys.mc_ratio);
   printf("temp        \t\t\t%10.5lf\n", sys.temp);
   printf("freq_sample \t\t\t%10d\n", sys.freq_sample);
@@ -171,9 +174,15 @@ void write_mon(void) {
   if ((fp = fopen("PQ.dat", "w")) == NULL) {
     printf("Cannot open file: PQ.dat\n");
   } else {
+    for (i = 0; i < sys.monitor_step; i++) {
+      bin = (int) ((sys.mon.Q[i] - sys.Q_min) / sys.bin_width);
+
+      sys.bin_count[bin] += 1;
+    }
+
     for (i = 0; i < sys.n_bins; i++) {
       bin = ((sys.iQ_init-1) * sys.n_bins / 2) + i;
-      fprintf(fp, "%d  %d\n", bin, sys.bin_count[bin]);
+      fprintf(fp, "%d  %d\n", bin, sys.bin_count[i]);
     }
   }
 }

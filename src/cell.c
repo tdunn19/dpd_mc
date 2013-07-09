@@ -34,9 +34,10 @@ void new_list(void) {
   }
 }
 
-int check_cell(Vector r, Vector ro) {
-  // Check for a new head of chain
-  int ix, iy, iz, ixo, iyo, izo;
+void check_cell(Vector r, Vector ro) {
+  int ix, iy, iz, ixo, iyo, izo, dix, diy, diz;
+
+  sys.new_cell = 0;
 
   ix = (int) (r.x / sys.r_cell.x);
   iy = (int) (r.y / sys.r_cell.y);
@@ -46,11 +47,12 @@ int check_cell(Vector r, Vector ro) {
   iyo = (int) (ro.y / sys.r_cell.y);
   izo = (int) (ro.z / sys.r_cell.z);
 
-  if (sys.hoc[ix][iy][iz] != sys.hoc[ixo][iyo][izo]) {
-    // The cell has changed
-    return 1;
-  } else {
-    return 0;
+  dix = ix - ixo;
+  diy = iy - iyo;
+  diz = iz - izo;
+
+  if (dix != 0 || diy != 0 || diz != 0) {
+    sys.new_cell = 1;
   }
 }
 

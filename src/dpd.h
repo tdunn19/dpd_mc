@@ -37,8 +37,10 @@ typedef struct stats_type {
 } Stats;
 
 typedef struct monitor_type {
-  double *energy, *re2, *rex, *rey, *rez,
-    *rg2, *rgx, *rgy, *rgz, *cmx, *cmy, *cmz, *bond_length, *Q;
+  double *energy, *re2, *rex, *rey, *rez, *re2_cis, *rex_cis, *rey_cis, *rez_cis,
+    *re2_trans, *rex_trans, *rey_trans, *rez_trans, *rg2, *rgx, *rgy, *rgz,
+    *rg2_cis, *rgx_cis, *rgy_cis, *rgz_cis, *rg2_trans, *rgx_trans, *rgy_trans,
+    *rgz_trans, *cmx, *cmy, *cmz, *bond_length, *Q;
 } Monitor;
 
 typedef struct parameter_type {
@@ -69,10 +71,10 @@ typedef struct parameter_type {
     n_trans,
     n_wall,
     n_wins,
+    new_cell,
     new_window,
-    pol_fixed,
-    wall_overlap,
-    win_init;
+    step,
+    wall_overlap;
 
   double
     a_mm,
@@ -96,8 +98,10 @@ typedef struct parameter_type {
     Q_max,
     Q_min,
     r_c,
+    r_c2,
     r_eq,
     r_max,
+    r_max2,
     r_pore,
     r_wall,
     r_0,
@@ -133,12 +137,13 @@ extern double  calc_q(void);
 extern void    calc_re(void);
 extern void    calc_rg(void);
 extern void    check_bond(int i);
-extern int     check_cell(Vector, Vector);
+extern void    check_cell(Vector, Vector);
 extern int     check_pore(Vector);
 extern void    check_wall(Vector);
 extern double  energy_c(Vector);
-extern double  energy_fene(int i, int j);
+extern double  energy_fene(Vector);
 extern void    initialize(void);
+extern void    init_energy(void);
 extern void    init_monitor(void);
 extern void    init_param(void);
 extern void    init_polymer(void);
@@ -157,7 +162,6 @@ extern void    periodic_bc_r(Vector *);
 extern void    print_stats(void);
 extern double  ran3(void);
 extern void    sample(void);
-extern double  total_energy(void);
 extern void    write_log(void);
 extern void    write_mon(void);
 extern Vector  vdist(Vector, Vector);

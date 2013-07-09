@@ -16,7 +16,7 @@ Vector vdist(Vector v, Vector u) {
 }
 
 double vmag(Vector v) {
-  return sqrt(v.x*v.x + v.y*v.y + v.z*v.z);
+  return v.x*v.x + v.y*v.y + v.z*v.z;
 }
 
 int mod(int a, int b) {

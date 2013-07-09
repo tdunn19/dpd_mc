@@ -5,7 +5,7 @@
 #include "dpd.h"
 
 void sample(void) {
-  int i;
+  int i, bin;
   Vector dr;
 
   P.now = 0;
@@ -79,7 +79,7 @@ double calc_q(void) {
     } else if (part_mon[i].r.z < sys.pore_min.z) {
       sys.n_cis += 1;
     } else {
-      Q += part_mon[i].r.z / sys.pore_length;
+      Q += (part_mon[i].r.z-sys.pore_min.z) / sys.pore_length;
     }
   }
 
@@ -250,7 +250,7 @@ void check_bond(int i) {
     periodic_bc_dr(&dr);
     r_ij = vmag(dr);
 
-    if (r_ij > sys.r_max) {
+    if (r_ij > sys.r_max2) {
       sys.bond_break = 1;
     }
   }
@@ -261,7 +261,7 @@ void check_bond(int i) {
     periodic_bc_dr(&dr);
     r_ij = vmag(dr);
 
-    if (r_ij > sys.r_max) {
+    if (r_ij > sys.r_max2) {
       sys.bond_break = 1;
     }
   }
@@ -282,18 +282,25 @@ void check_wall(Vector r) {
   if (r.z >= sys.pore_min.z && r.z <= sys.pore_max.z) {
     if ((r.x <= sys.pore_min.x && r.x >= sys.pore_min.x-(sys.n_layers*sys.r_wall))
       || (r.x >= sys.pore_max.x && r.x <= sys.pore_max.x+(sys.n_layers*sys.r_wall))) {
-      if ((r.y <= sys.pore_min.y && r.y >= sys.pore_min.y-(sys.n_layers*sys.r_wall))
-        || (r.y >= sys.pore_max.y && r.y <= sys.pore_max.y+(sys.n_layers*sys.r_wall))) {
+      if (r.y <= sys.pore_max.y+(sys.n_layers*sys.r_wall)
+        && r.y >= sys.pore_min.y-(sys.n_layers*sys.r_wall)) {
+        sys.wall_overlap = 1;
+      }
+    }
+
+    if ((r.y <= sys.pore_min.y && r.y >= sys.pore_min.y-(sys.n_layers*sys.r_wall))
+      || (r.y >= sys.pore_max.y && r.y <= sys.pore_max.y+(sys.n_layers*sys.r_wall))) {
+      if (r.x <= sys.pore_max.x+(sys.n_layers*sys.r_wall)
+        && r.x >= sys.pore_min.x-(sys.n_layers*sys.r_wall)) {
         sys.wall_overlap = 1;
       }
     }
   }
-
 }
 
 int check_pore(Vector r) {
   if ((r.x > sys.pore_min.x && r.x < sys.pore_max.x)
-    && (r.y > sys.pore_min.y && r.y < sys.pore_min.y)
+    && (r.y > sys.pore_min.y && r.y < sys.pore_max.y)
     && (r.z > sys.pore_min.z && r.z < sys.pore_max.z)) {
     return 1;
   } else {
@@ -308,11 +315,9 @@ void check_window() {
 
   Q = calc_q();
 
-  if (Q < sys.Q_min) {
+  if (Q < sys.Q_min + 1e-12) {
     sys.new_window = 1;
-  } else if (Q > sys.Q_max) {
+  } else if (Q > sys.Q_max - 1e-12) {
     sys.new_window = 1;
   }
-
-
 }

@@ -43,7 +43,7 @@ double ran3()
 
   return  (double)mj / mbig;
 }
-    
+
 
 
 

@@ -10,9 +10,9 @@ void initialize(void) {
   input();
   init_param();
   init_polymer();
+  init_solvent();
   init_pore();
   init_wall();
-  init_solvent();
   init_energy();
   init_monitor();
   init_stats();
@@ -47,7 +47,7 @@ void init_param(void) {
   sys.pore_max.y = sys.length.y/2 + sys.pore_radius;
   sys.pore_min.y = sys.length.y/2 - sys.pore_radius;
   sys.pore_max.z = sys.length.z/2;
-  sys.n_pore_1d.z = (int) (sys.pore_max.z / sys.r_wall) + 1;
+  sys.n_pore_1d.z = (int) (sys.pore_length / sys.r_wall) + 1;
   sys.pore_min.z = sys.pore_max.z - (sys.n_pore_1d.z-1)*sys.r_wall;
   sys.pore_length = sys.pore_max.z - sys.pore_min.z;
 
@@ -101,20 +101,28 @@ void init_param(void) {
 
   // Monomer-monomer bonds
   sys.r_max = 2.0;
+  sys.r_max2 = sys.r_max * sys.r_max;
   sys.r_eq = 0.7;
   sys.r_0 = sys.r_max - sys.r_eq;
   sys.k_fene = 40;
+  sys.r_c2 = sys.r_c * sys.r_c;
 
   // Windows and bins in the nanopore
   sys.window_width = 2.0 / (sys.n_wins+1);
   sys.bin_width = sys.window_width / sys.n_bins;
   sys.Q_init = sys.iQ_init * sys.window_width / 2;
-  sys.Q_min = (sys.win_init-1) * sys.window_width / 2;
-  sys.Q_max = (sys.win_init+1) * sys.window_width / 2;
+  sys.Q_min = (sys.iQ_init-1) * sys.window_width / 2;
+  sys.Q_max = (sys.iQ_init+1) * sys.window_width / 2;
+  if (sys.Q_min < 0) {
+    sys.Q_min = 0;
+  }
+  if (sys.Q_max > 1) {
+    sys.Q_max = 1.0;
+  }
 
-  sys.bin_count = (int *) malloc((sys.n_bins)*sizeof(int *));
+  sys.bin_count = (int *) malloc((sys.n_bins)*sizeof(int));
   for (i = 0; i < sys.n_bins; i++) {
-    sys.bin_count = 0;
+    sys.bin_count[i] = 0;
   }
 
   if (sys.calc_list) {
@@ -163,29 +171,22 @@ void init_polymer(void) {
 
   count = 0;
   do {
-    printf("\nattempt %d\n", count+1);
-
     z_init = (z_max + z_min) / 2;
 
     for (i = 0; i < sys.n_mon; i++) {
       part_mon[i].r.z = z_init - i * sys.bl_init;
-      printf("mon[%d].r = %lf,%lf,%lf\n",
-        i, part_mon[i].r.x,part_mon[i].r.y,part_mon[i].r.z);
     }
 
     Q_test = calc_q();
-    printf("\tQ_test = %lf\t", Q_test);
 
     if (Q_test <= sys.Q_min) {
-      printf("<= %lf\n", sys.Q_min);
       z_min = z_init;
     } else if (Q_test >= sys.Q_max) {
-      printf(">= %lf\n", sys.Q_max);
       z_max = z_init;
     }
 
     count++;
-    if (count > 100) {
+    if (count > 1000) {
       printf("Problem positioning the polymer\n");
       exit(0);
     }
@@ -201,8 +202,8 @@ void init_polymer(void) {
 }
 
 void init_solvent(void) {
-  int i, inside_pore;
-  double x, y, z, d;
+  int i;
+  FILE *fp;
 
   for (i = 0; i < sys.n_solvent; i++) {
     // Repeat until the particle is outside the wall and pore
@@ -213,14 +214,11 @@ void init_solvent(void) {
       part_dpd[i].ro.x = part_dpd[i].r.x;
       part_dpd[i].ro.y = part_dpd[i].r.y;
       part_dpd[i].ro.z = part_dpd[i].r.z;
-      printf("solvent[%d].r = %lf,%lf,%lf\n",
-        i,part_dpd[i].r.x,part_dpd[i].r.y,part_dpd[i].r.z);
 
       // Check for wall overlap
       check_wall(part_dpd[i].r);
     } while (sys.wall_overlap || check_pore(part_dpd[i].r));
   }
-
 }
 
 void init_pore(void) {
@@ -237,12 +235,8 @@ void init_pore(void) {
       for (i = 0; i < sys.n_pore_1d.x; i++) {
         if (i == 0 || i == sys.n_pore_1d.x-1) {
           part_dpd[n].r = r;
-          printf("pore[%d].r = %lf,%lf,%lf\n",
-            n,part_dpd[n].r.x,part_dpd[n].r.y,part_dpd[n].r.z);
           n++;
         } else if (j == 0 || j == sys.n_pore_1d.y-1) {
-          printf("pore[%d].r = %lf,%lf,%lf\n",
-            n,part_dpd[n].r.x,part_dpd[n].r.y,part_dpd[n].r.z);
           part_dpd[n].r = r;
           n++;
         }
@@ -258,7 +252,6 @@ void init_pore(void) {
 
 void init_wall(void) {
   int i, j, k, n;
-  double x, y, z;
   Vector r;
 
   r.x = sys.wall_min.x;
@@ -273,12 +266,8 @@ void init_wall(void) {
 
         if (r.x < sys.pore_min.x || r.x > sys.pore_max.x+1e-9) {
           part_dpd[n].r = r;
-          printf("wall[%d].r = %lf,%lf,%lf\n",
-            n,part_dpd[n].r.x,part_dpd[n].r.y,part_dpd[n].r.z);
           n++;
         } else if (r.y < sys.pore_min.y || r.y > sys.pore_max.y+1e-9) {
-          printf("wall[%d].r = %lf,%lf,%lf\n",
-            n,part_dpd[n].r.x,part_dpd[n].r.y,part_dpd[n].r.z);
           part_dpd[n].r = r;
           n++;
         }
@@ -315,13 +304,9 @@ void init_wall(void) {
         for (i = -sys.n_layers; i < sys.n_pore_1d.x+sys.n_layers; i++) {
           if (i < 0 || i > sys.n_pore_1d.x-1) {
             part_dpd[n].r = r;
-          printf("wall[%d].r = %lf,%lf,%lf\n",
-            n,part_dpd[n].r.x,part_dpd[n].r.y,part_dpd[n].r.z);
             n++;
           } else if (j < 0 || j > sys.n_pore_1d.y-1) {
             part_dpd[n].r = r;
-          printf("wall[%d].r = %lf,%lf,%lf\n",
-            n,part_dpd[n].r.x,part_dpd[n].r.y,part_dpd[n].r.z);
             n++;
           }
 
@@ -345,6 +330,42 @@ void init_wall(void) {
       r.z += sys.r_wall;
     }
   }
+}
+
+void init_energy(void) {
+  int i;
+
+  sys.energy = 0;
+
+  if (sys.calc_list) {
+    new_list();
+
+    for (i = 0; i < sys.n_dpd; i++) {
+      part_dpd[i].E = calc_energy_dpd(i);
+      part_dpd[i].Eo = part_dpd[i].E;
+      sys.energy += part_dpd[i].E;
+    }
+
+    for (i = 0; i < sys.n_mon; i++) {
+      part_mon[i].E = calc_energy_mon(i);
+      part_mon[i].Eo = part_mon[i].E;
+      sys.energy += part_dpd[i].E;
+
+    }
+  } else {
+    calc_energy_brute();
+
+    for (i = 0; i < sys.n_dpd; i++) {
+      part_dpd[i].Eo = part_dpd[i].E;
+      sys.energy += part_dpd[i].E;
+    }
+
+    for (i = 0; i < sys.n_mon; i++) {
+      part_mon[i].Eo = part_mon[i].E;
+      sys.energy += part_dpd[i].E;
+    }
+  }
+  sys.energy_old = sys.energy;
 }
 
 void init_monitor(void) {
@@ -385,40 +406,3 @@ void init_stats(void) {
   sys.stats[10].name = "Bond_length            ";
 }
 
-void init_energy(void) {
-  if (sys.calc_list) {
-    new_list();
-
-    for (i = 0; i < sys.n_dpd; i++) {
-      part_dpd[i].E = calc_energy_dpd(i);
-      part_dpd[i].Eo = part_dpd[i].E;
-    }
-
-    for (i = 0; i < sys.n_mon; i++) {
-      part_mon[i].E = calc_energy_mon(i);
-      part_mon[i].Eo = part_mon[i].E;
-    }
-  } else {
-    calc_energy_brute();
-
-    for (i = 0; i < sys.n_dpd; i++) {
-      part_dpd[i].Eo = part_dpd[i].E;
-    }
-
-    for (i = 0; i < sys.n_mon; i++) {
-      part_mon[i].Eo = part_mon[i].E;
-    }
-  }
-
-  sys.energy = 0;
-
-  for (i = 0; i < sys.n_dpd; i++) {
-    sys.energy += part_dpd[i].E;
-  }
-
-  for (i = 0; i < sys.n_mon; i++) {
-    sys.energy += part_mon[i].E;
-  }
-
-  sys.energy_old = sys.energy;
-}
