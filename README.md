@@ -22,7 +22,7 @@ To compile and run:
 Edit src/dpd.inp to change parameters. The following is a description of all the input parameters as well as typical values in brackets:
 
     n_mon - the number of monomers
-    pol_init_bl - initial bond length of the polymer (0.5-1.0)
+    bl_init - initial bond length of the polymer (0.5-1.0)
 
     length_x - system box length in the x (10)
     length_y - in the y (10)
@@ -53,7 +53,6 @@ Edit src/dpd.inp to change parameters. The following is a description of all the
     mc_ratio - percentage of mc moves that will choose a monomer over a solvent particle (0.5)
     temp - system temperature (1.0)
     freq_sample - sample the system every x steps (100)
-    freq_monitor - monitor the system every x steps (100)
 
     iseed - random integer seed (change this before every run)
 
@@ -67,8 +66,8 @@ Version 4.2 (July 3, 2013)
     * old method was to recalculate all (or those within neighbor cells) particle energies and finding the new system energy from scratch
     * new method simply finds the difference in energy dE of affected particles
     * these differences are added to the system energy, then compared to the old system energy to determine acceptance
-* removed function total_energy, added function init_energy to some the energies at the beginning of the simulation
-* new parameter bin_count[sys.n_bins]: keeps a tally of how often a particle bin is measured
+* removed function total_energy, added function init_energy to sum the energies at the beginning of the simulation
+* new parameter bin_count[sys.n_bins]: keeps a tally of how often the polymer is measured to be in a particular bin
 * added calculation to write_mon for PQ.dat: the bin frequency file
 * sys.volume was being adjusted by too much (an extra layer worth of wall particles)
 * rewrote run.sh and submit.sh to accomodate binning
@@ -77,8 +76,9 @@ Version 4.2 (July 3, 2013)
 
 Version 4.1 (June 24, 2013)
 * the translocation coordinate Q has been added:
-    * new function calc_q: calculates translocation coordinate of the polymer and update new system parameters n_cis and n_trans
+    * new function calc_q: calculates translocation coordinate of the polymer and updates new system parameters n_cis and n_trans
     * new monitored quantity sys.mon.Q
+    * new output file Q.dat: history of the translocation coordinate
 * implemented binning system:
     * new input parameters n_wins and n_bins: define the number of windows and bins to use
     * new parameters window_width and bin_width: define width of windows and bins

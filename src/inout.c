@@ -31,9 +31,7 @@ void input(void) {
     fscanf(fp, "%d%*s", &sys.calc_list);
     fscanf(fp, "%d%*s", &sys.n_steps);
     fscanf(fp, "%lf%*s", &sys.mc_ratio);
-    fscanf(fp, "%lf%*s", &sys.temp);
     fscanf(fp, "%d%*s", &sys.freq_sample);
-    fscanf(fp, "%d%*s", &sys.freq_monitor);
     fscanf(fp, "%d%*s", &sys.iseed);
   }
   fclose(fp);
@@ -75,9 +73,7 @@ void write_log(void) {
   printf("calc_list   \t\t\t%10d\n", sys.calc_list);
   printf("n_steps     \t\t\t%10d\n", sys.n_steps);
   printf("mc_ratio    \t\t\t%10.5lf\n", sys.mc_ratio);
-  printf("temp        \t\t\t%10.5lf\n", sys.temp);
-  printf("freq_sample \t\t\t%10d\n", sys.freq_sample);
-  printf("freq_monitor\t\t\t%10d\n\n", sys.freq_monitor);
+  printf("freq_sample \t\t\t%10d\n\n", sys.freq_sample);
   printf("iseed       \t\t\t%10d\n", sys.iseed);
   printf("\n\n");
 }
@@ -137,12 +133,48 @@ void write_mon(void) {
     }
   }
 
+  if ((fp = fopen("re_cis.dat", "w")) == NULL) {
+    printf("Cannot open file: re_cis.dat\n");
+  } else {
+    for (i = 0; i < sys.monitor_step; i++) {
+      fprintf(fp, "%d  %lf %lf %lf %lf\n",
+       i, sys.mon.re2_cis[i], sys.mon.rex_cis[i], sys.mon.rey_cis[i], sys.mon.rez_cis[i]);
+    }
+  }
+
+  if ((fp = fopen("re_trans.dat", "w")) == NULL) {
+    printf("Cannot open file: re_trans.dat\n");
+  } else {
+    for (i = 0; i < sys.monitor_step; i++) {
+      fprintf(fp, "%d  %lf %lf %lf %lf\n",
+       i, sys.mon.re2_trans[i], sys.mon.rex_trans[i], sys.mon.rey_trans[i], sys.mon.rez_trans[i]);
+    }
+  }
+
   if ((fp = fopen("rg.dat", "w")) == NULL) {
     printf("Cannot open file: rg.dat\n");
   } else {
     for (i = 0; i < sys.monitor_step; i++) {
       fprintf(fp, "%d  %lf %lf %lf %lf\n",
-       i, sys.mon.rg2[i], sys.mon.rgx[i], sys.mon.rgy[i], sys.mon.rgz[i]);
+       i, sys.mon.rg2[i], sys.mon.rg2x[i], sys.mon.rg2y[i], sys.mon.rg2z[i]);
+    }
+  }
+
+  if ((fp = fopen("rg_cis.dat", "w")) == NULL) {
+    printf("Cannot open file: rg_cis.dat\n");
+  } else {
+    for (i = 0; i < sys.monitor_step; i++) {
+      fprintf(fp, "%d  %lf %lf %lf %lf\n",
+       i, sys.mon.rg2_cis[i], sys.mon.rg2x_cis[i], sys.mon.rg2y_cis[i], sys.mon.rg2z_cis[i]);
+    }
+  }
+
+  if ((fp = fopen("rg_trans.dat", "w")) == NULL) {
+    printf("Cannot open file: rg_trans.dat\n");
+  } else {
+    for (i = 0; i < sys.monitor_step; i++) {
+      fprintf(fp, "%d  %lf %lf %lf %lf\n",
+       i, sys.mon.rg2_trans[i], sys.mon.rg2x_trans[i], sys.mon.rg2y_trans[i], sys.mon.rg2z_trans[i]);
     }
   }
 
@@ -152,14 +184,6 @@ void write_mon(void) {
     for (i = 0; i < sys.monitor_step; i++) {
       fprintf(fp, "%d  %lf %lf %lf\n",
        i, sys.mon.cmx[i], sys.mon.cmy[i], sys.mon.cmz[i]);
-    }
-  }
-
-  if ((fp = fopen("bond_length.dat", "w")) == NULL) {
-    printf("Cannot open file: bond_length.dat\n");
-  } else {
-    for (i = 0; i < sys.monitor_step; i++) {
-      fprintf(fp, "%d  %lf\n", i, sys.mon.bond_length[i]);
     }
   }
 

@@ -5,14 +5,13 @@
 #define P      sys.stats[0]
 #define Etot   sys.stats[1]
 #define RE2    sys.stats[2]
-#define RE2x   sys.stats[3]
-#define RE2y   sys.stats[4]
-#define RE2z   sys.stats[5]
+#define REx    sys.stats[3]
+#define REy    sys.stats[4]
+#define REz    sys.stats[5]
 #define RG2    sys.stats[6]
 #define RG2x   sys.stats[7]
 #define RG2y   sys.stats[8]
 #define RG2z   sys.stats[9]
-#define BL     sys.stats[10]
 
 /* Structure defintions */
 
@@ -37,10 +36,14 @@ typedef struct stats_type {
 } Stats;
 
 typedef struct monitor_type {
-  double *energy, *re2, *rex, *rey, *rez, *re2_cis, *rex_cis, *rey_cis, *rez_cis,
-    *re2_trans, *rex_trans, *rey_trans, *rez_trans, *rg2, *rgx, *rgy, *rgz,
-    *rg2_cis, *rgx_cis, *rgy_cis, *rgz_cis, *rg2_trans, *rgx_trans, *rgy_trans,
-    *rgz_trans, *cmx, *cmy, *cmz, *bond_length, *Q;
+  double *energy, *Q,
+    *re2, *rex, *rey, *rez,
+    *re2_cis, *rex_cis, *rey_cis, *rez_cis,
+    *re2_trans, *rex_trans, *rey_trans, *rez_trans,
+    *rg2, *rg2x, *rg2y, *rg2z,
+    *rg2_cis, *rg2x_cis, *rg2y_cis, *rg2z_cis,
+    *rg2_trans, *rg2x_trans, *rg2y_trans, *rg2z_trans,
+    *cmx, *cmy, *cmz;
 } Monitor;
 
 typedef struct parameter_type {
@@ -48,7 +51,6 @@ typedef struct parameter_type {
     *bin_count,
     bond_break,
     calc_list,
-    freq_monitor,
     freq_sample,
     iQ_init,
     iseed,
@@ -94,6 +96,7 @@ typedef struct parameter_type {
     pore_length,
     pore_radius,
     pore_volume,
+    Q,
     Q_init,
     Q_max,
     Q_min,
@@ -110,8 +113,24 @@ typedef struct parameter_type {
     wall_volume,
     window_width;
 
+  Vector
+    cm,
+    cm_cis,
+    cm_trans,
+    length,
+    pore_max,
+    pore_min,
+    r_cell,
+    re,
+    re_cis,
+    re_trans,
+    rg2,
+    rg2_cis,
+    rg2_trans,
+    wall_max,
+    wall_min;
+
   Ivector n_cell_1d, n_pore_1d, n_wall_1d;
-  Vector length, pore_max, pore_min, r_cell, wall_max, wall_min;
   Stats *stats;
   Monitor mon;
 } System;
@@ -127,13 +146,13 @@ extern System sys;
 /* Global functions */
 
 extern int     accept_move(void);
-extern void    calc_bond_length(void);
 extern void    calc_energy_brute(void);
 extern double  calc_energy_dpd(int i);
 extern double  calc_energy_mon(int i);
 extern void    calc_cm(void);
+extern void    calc_nseg(void);
 extern void    calc_pressure(void);
-extern double  calc_q(void);
+extern void    calc_q(void);
 extern void    calc_re(void);
 extern void    calc_rg(void);
 extern void    check_bond(int i);
@@ -162,6 +181,8 @@ extern void    periodic_bc_r(Vector *);
 extern void    print_stats(void);
 extern double  ran3(void);
 extern void    sample(void);
+extern void    update_monitor(void);
+extern void    update_stats(void);
 extern void    write_log(void);
 extern void    write_mon(void);
 extern Vector  vdist(Vector, Vector);

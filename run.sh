@@ -23,3 +23,5 @@ for ((window=$2;window<$3;window++)); do
 done
 
 cp output"$1".log "$4"/output
+mv "$PWD" "$PWD"-done
+

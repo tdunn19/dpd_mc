@@ -16,13 +16,13 @@ System sys;
 /* Global functions */
 
 int     accept_move(void);
-void    calc_bond_length(void);
 void    calc_energy_brute(void);
 double  calc_energy_dpd(int i);
 double  calc_energy_mon(int i);
 void    calc_cm(void);
+void    calc_nseg(void);
 void    calc_pressure(void);
-double  calc_q(void);
+void    calc_q(void);
 void    calc_re(void);
 void    calc_rg(void);
 void    check_bond(int i);
@@ -50,6 +50,8 @@ void    periodic_bc(Vector *);
 void    print_stats(void);
 double  ran3(void);
 void    sample(void);
+void    update_monitor(void);
+void    update_stats(void);
 void    write_log(void);
 void    write_mon(void);
 Vector  vdist(Vector, Vector);
@@ -66,7 +68,6 @@ main() {
   for (sys.step = 0; sys.step <= sys.n_steps; sys.step++) {
     monte_carlo();
     if (sys.step % sys.freq_sample == 0) sample();
-    if (sys.step % sys.freq_monitor == 0) monitor();
   }
 
   final_stats();

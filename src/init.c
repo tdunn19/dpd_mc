@@ -9,6 +9,7 @@
 void initialize(void) {
   input();
   init_param();
+  write_log();
   init_polymer();
   init_solvent();
   init_pore();
@@ -16,7 +17,6 @@ void initialize(void) {
   init_energy();
   init_monitor();
   init_stats();
-  write_log();
 }
 
 void init_param(void) {
@@ -157,7 +157,7 @@ void init_param(void) {
 
 void init_polymer(void) {
   int i, count;
-  double Q_test, z_min, z_max, z_init;
+  double z_min, z_max, z_init;
 
   part_mon = (Particle *) calloc(sys.n_mon, sizeof(Particle));
 
@@ -177,11 +177,11 @@ void init_polymer(void) {
       part_mon[i].r.z = z_init - i * sys.bl_init;
     }
 
-    Q_test = calc_q();
+    calc_q();
 
-    if (Q_test <= sys.Q_min) {
+    if (sys.Q <= sys.Q_min) {
       z_min = z_init;
-    } else if (Q_test >= sys.Q_max) {
+    } else if (sys.Q >= sys.Q_max) {
       z_max = z_init;
     }
 
@@ -190,7 +190,7 @@ void init_polymer(void) {
       printf("Problem positioning the polymer\n");
       exit(0);
     }
-  } while (Q_test <= sys.Q_min || Q_test >= sys.Q_max);
+  } while (sys.Q <= sys.Q_min || sys.Q >= sys.Q_max);
 
   for (i = 0; i < sys.n_mon; i++) {
     periodic_bc_r(&part_mon[i].r);
@@ -371,38 +371,53 @@ void init_energy(void) {
 void init_monitor(void) {
   int n_size;
 
-  n_size = (sys.n_steps / sys.freq_monitor) + 1;
+  n_size = (sys.n_steps / sys.freq_sample) + 1;
 
   sys.mon.energy = (double *) calloc(n_size, sizeof(double));
+  sys.mon.Q = (double *) calloc(n_size, sizeof(double));
   sys.mon.re2 = (double *) calloc(n_size, sizeof(double));
   sys.mon.rex = (double *) calloc(n_size, sizeof(double));
   sys.mon.rey = (double *) calloc(n_size, sizeof(double));
   sys.mon.rez = (double *) calloc(n_size, sizeof(double));
+  sys.mon.re2_cis = (double *) calloc(n_size, sizeof(double));
+  sys.mon.rex_cis = (double *) calloc(n_size, sizeof(double));
+  sys.mon.rey_cis = (double *) calloc(n_size, sizeof(double));
+  sys.mon.rez_cis = (double *) calloc(n_size, sizeof(double));
+  sys.mon.re2_trans = (double *) calloc(n_size, sizeof(double));
+  sys.mon.rex_trans = (double *) calloc(n_size, sizeof(double));
+  sys.mon.rey_trans = (double *) calloc(n_size, sizeof(double));
+  sys.mon.rez_trans = (double *) calloc(n_size, sizeof(double));
   sys.mon.rg2 = (double *) calloc(n_size, sizeof(double));
-  sys.mon.rgx = (double *) calloc(n_size, sizeof(double));
-  sys.mon.rgy = (double *) calloc(n_size, sizeof(double));
-  sys.mon.rgz = (double *) calloc(n_size, sizeof(double));
+  sys.mon.rg2x = (double *) calloc(n_size, sizeof(double));
+  sys.mon.rg2y = (double *) calloc(n_size, sizeof(double));
+  sys.mon.rg2z = (double *) calloc(n_size, sizeof(double));
+  sys.mon.rg2_cis = (double *) calloc(n_size, sizeof(double));
+  sys.mon.rg2x_cis = (double *) calloc(n_size, sizeof(double));
+  sys.mon.rg2y_cis = (double *) calloc(n_size, sizeof(double));
+  sys.mon.rg2z_cis = (double *) calloc(n_size, sizeof(double));
+  sys.mon.rg2_trans = (double *) calloc(n_size, sizeof(double));
+  sys.mon.rg2x_trans = (double *) calloc(n_size, sizeof(double));
+  sys.mon.rg2y_trans = (double *) calloc(n_size, sizeof(double));
+  sys.mon.rg2z_trans = (double *) calloc(n_size, sizeof(double));
   sys.mon.cmx = (double *) calloc(n_size, sizeof(double));
   sys.mon.cmy = (double *) calloc(n_size, sizeof(double));
   sys.mon.cmz = (double *) calloc(n_size, sizeof(double));
-  sys.mon.bond_length = (double *) calloc(n_size, sizeof(double));
   sys.mon.Q = (double *) calloc(n_size, sizeof(double));
 }
 
 void init_stats(void) {
-  sys.n_stats = 11;
+  sys.n_stats = 10;
   sys.stats = (Stats *) calloc(sys.n_stats, sizeof(Stats));
 
   sys.stats[0].name = "Pressure               ";
   sys.stats[1].name = "Energy                 ";
   sys.stats[2].name = "Re2                    ";
-  sys.stats[3].name = "Re2x                   ";
-  sys.stats[4].name = "Re2y                   ";
-  sys.stats[5].name = "Re2z                   ";
+  sys.stats[3].name = "Rex                   ";
+  sys.stats[4].name = "Rey                   ";
+  sys.stats[5].name = "Rez                   ";
   sys.stats[6].name = "Rg2                    ";
   sys.stats[7].name = "Rg2x                   ";
   sys.stats[8].name = "Rg2y                   ";
   sys.stats[9].name = "Rg2z                   ";
-  sys.stats[10].name = "Bond_length            ";
 }
 
