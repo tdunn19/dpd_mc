@@ -566,7 +566,7 @@ int accept_move(void) {
   } else {
     dE = sys.energy - sys.energy_old;
 
-    if (dE > 0 && ran3() > exp(-sys.temp*dE)) {
+    if (dE > 0 && ran3() > exp(-dE)) {
       // Reject the movement
       sys.energy = sys.energy_old;
       return 0;

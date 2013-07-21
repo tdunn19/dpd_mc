@@ -38,7 +38,8 @@ set -o pipefail
 
 # Read run.inp
 n_mon=$(awk '/n_mon/ {print $2}' run.inp)
-density_s=$(awk '/density_s/ {print $2}' run.inp)
+density_cis=$(awk '/density_cis/ {print $2}' run.inp)
+density_trans=$(awk '/density_trans/ {print $2}' run.inp)
 n_wins=$(awk '/n_wins/ {print $2}' run.inp)
 n_steps=$(awk '/n_steps/ {print $2}' run.inp)
 calc_list=$(awk '/calc_list/ {print $2}' run.inp)
@@ -47,21 +48,26 @@ run_time=$(awk '/run_time/ {print $2}' run.inp)
 
 # Modify dpd.inp
 sed -i "s/.*n_mon.*/$n_mon\t\t\tn_mon/g" src/dpd.inp
-sed -i "s/.*density_s.*/$density_s\t\t\tdensity_s/g" src/dpd.inp
+sed -i "s/.*density_cis.*/$density_cis\t\t\tdensity_cis/g" src/dpd.inp
+sed -i "s/.*density_trans.*/$density_trans\t\t\tdensity_trans/g" src/dpd.inp
 sed -i "s/.*n_wins.*/$n_wins\t\t\tn_wins/g" src/dpd.inp
 sed -i "s/.*n_steps.*/$n_steps\t\t\tn_steps/g" src/dpd.inp
 sed -i "s/.*calc_list.*/$calc_list\t\t\tcalc_list/g" src/dpd.inp
 
 # Create directories
-temp="$dir"/src/temp/n"$n_mon"d"$density_s"
-data="$scratch"/n"$n_mon"d"$density_s"
+temp="$dir"/src/temp/n"$n_mon"c"$density_cis"t"$density_trans"
+data="$scratch"/n"$n_mon"c"$density_cis"t"$density_trans"
 mkdir -p "$temp"
 mkdir -p "$data"
 mkdir "$data"/PQ
 mkdir "$data"/Q
 mkdir "$data"/energy
 mkdir "$data"/re
+mkdir "$data"/re/cis
+mkdir "$data"/re/trans
 mkdir "$data"/rg
+mkdir "$data"/rg/cis
+mkdir "$data"/rg/trans
 mkdir "$data"/input
 mkdir "$data"/output
 
@@ -82,7 +88,7 @@ for ((window=1,job=1;window<=$n_wins;job++)); do
     qsub -cwd -l h_rt="$run_time" run.sh $job $window $((window+runs_per_job)) $data
     cd "$dir"
 
-    echo 'Submitting n'$n_mon'd'$density_s'j'$job' (w'$window' to w'$((window+runs_per_job-1))') for '$run_time''
+    echo 'Submitting n'$n_mon'c'$density_cis't'$density_trans'j'$job' (w'$window' to w'$((window+runs_per_job-1))') for '$run_time''
 
     window=$((window+runs_per_job))
 done

@@ -220,9 +220,9 @@ void update_stats(void) {
 
   Etot.now = sys.energy;
   RE2.now = sys.re.x*sys.re.x + sys.re.y*sys.re.y + sys.re.z*sys.re.z;
-  REx.now = sys.re.x;
-  REy.now = sys.re.x;
-  REz.now = sys.re.x;
+  RE2x.now = sys.re.x * sys.re.x;
+  RE2y.now = sys.re.y * sys.re.y;
+  RE2z.now = sys.re.z * sys.re.z;
   RG2.now = sys.rg2.x + sys.rg2.y + sys.rg2.z;
   RG2x.now = sys.rg2.x;
   RG2y.now = sys.rg2.y;
@@ -351,6 +351,14 @@ void check_window() {
   }
 }
 
+int check_side(Vector r) {
+  if (r.z > sys.length.z/2) {
+    return 0;
+  } else {
+    return 1;
+  }
+}
+
 void calc_pressure(void) {
   // Calculate the pressure using the truncated virial expansion
   int i, j;
@@ -431,5 +439,6 @@ void calc_pressure(void) {
   }
 
   P.now /= 3*sys.volume;
-  P.now += sys.density_s*sys.temp;
+  // P.now += sys.density_s;
+  // P.now += sys.density_s*sys.temp;
 }

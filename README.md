@@ -27,7 +27,8 @@ Edit src/dpd.inp to change parameters. The following is a description of all the
     length_x - system box length in the x (10)
     length_y - in the y (10)
     length_z - in the z (long enough to fit the polymer)
-    density_s - the solvent density (3)
+    density_cis - the solvent density on the cis side (3)
+    density_trans - the solvent density on the trans side (3)
 
     density_w - density of wall particles (3)
     n_layers - number of extra wall layers (2)
@@ -60,6 +61,15 @@ The run.sh and submit.sh scripts were written specifically for ACEnet clusters.
 
 Changelog
 ---------
+
+Version 4.3 (July 15, 2013)
+
+* added functionality to have differing solvent densities on the cis and trans sides of the pore
+* combined freq_sample and freq_monitor into freq_sample
+* rewrote sample function: now stores quantities in global system variables, then updates runs update_monitor and update_stats
+* new function check_side: takes in vector r and outputs 0 if the particle is on the cis side, and 1 if the particle is on the trans side
+* if the polymer is too large for the box size, an error message will be printed during initialization and the program will exit
+* changed the initialization order: write_log will now be run before init_solvent so that the correct initial iseed is output
 
 Version 4.2 (July 3, 2013)
 * a few changes to improve energy calculation efficiency

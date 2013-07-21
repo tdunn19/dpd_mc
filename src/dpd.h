@@ -5,9 +5,9 @@
 #define P      sys.stats[0]
 #define Etot   sys.stats[1]
 #define RE2    sys.stats[2]
-#define REx    sys.stats[3]
-#define REy    sys.stats[4]
-#define REz    sys.stats[5]
+#define RE2x   sys.stats[3]
+#define RE2y   sys.stats[4]
+#define RE2z   sys.stats[5]
 #define RG2    sys.stats[6]
 #define RG2x   sys.stats[7]
 #define RG2y   sys.stats[8]
@@ -24,7 +24,7 @@ typedef struct ivector_type {
 } Ivector;
 
 typedef struct particle_type {
-  int ll;
+  int ll, side;
   double E, Eo;
   Vector r, ro;
 } Particle;
@@ -68,6 +68,8 @@ typedef struct parameter_type {
     n_mon,
     n_pore,
     n_solvent,
+    n_solvent_cis,
+    n_solvent_trans,
     n_stats,
     n_steps,
     n_trans,
@@ -85,7 +87,8 @@ typedef struct parameter_type {
     a_sw,
     bin_width,
     bl_init,
-    density_s,
+    density_cis,
+    density_trans,
     density_w,
     dr_max_dpd,
     dr_max_mon,
@@ -108,8 +111,9 @@ typedef struct parameter_type {
     r_pore,
     r_wall,
     r_0,
-    temp,
     volume,
+    volume_cis,
+    volume_trans,
     wall_volume,
     window_width;
 
@@ -158,6 +162,7 @@ extern void    calc_rg(void);
 extern void    check_bond(int i);
 extern void    check_cell(Vector, Vector);
 extern int     check_pore(Vector);
+extern int     check_side(Vector);
 extern void    check_wall(Vector);
 extern double  energy_c(Vector);
 extern double  energy_fene(Vector);

@@ -1,5 +1,6 @@
 n_mon         10
-density_s     1
+density_cis   1
+density_trans 1
 n_wins        99
 n_steps       100000
 calc_list     1

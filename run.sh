@@ -18,7 +18,11 @@ for ((window=$2;window<$3;window++)); do
     mv Q.dat "$4"/Q/Q"$window".dat
     mv energy.dat "$4"/energy/energy"$window".dat
     mv re.dat "$4"/re/re"$window".dat
+    mv re_cis.dat "$4"/re/re_cis/re_cis"$window".dat
+    mv re_trans "$4"/re/re_trans/re_trans"$window".dat
     mv rg.dat "$4"/rg/rg"$window".dat
+    mv rg_cis.dat "$4"/rg/rg_cis/rg_cis"$window".dat
+    mv rg_trans "$4"/rg/rg_trans/rg_trans"$window".dat
     cp dpd.inp "$4"/input/dpd"$window".inp
 done
 
