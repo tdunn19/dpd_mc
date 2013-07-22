@@ -28,3 +28,11 @@ int mod(int a, int b) {
 
   return c;
 }
+
+double root(double x) {
+  int ix;
+
+  ix = (int) (x * 100001);
+  
+  return root_table[ix];
+}

@@ -1,8 +1,8 @@
 SHELL=/bin/sh
 #
-SRCS = main.c init.c calc.c cell.c energy.c mc.c inout.c function.c ran.c
+SRCS = main.c init.c calc.c cell.c energy.c mc.c inout.c function.c ran.c table.c
 
-OBJS = main.o init.o calc.o cell.o energy.o mc.c inout.o function.o ran.o
+OBJS = main.o init.o calc.o cell.o energy.o mc.c inout.o function.o ran.o table.o
 
 
 HFILES =  dpd.h

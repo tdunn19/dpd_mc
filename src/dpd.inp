@@ -1,9 +1,9 @@
-20			n_mon
+10			n_mon
 0.5         bl_init
 
-10.0        length_x
-10.0        length_y
-25.0        length_z
+5.0        length_x
+5.0        length_y
+15.0        length_z
 3           density_cis
 3			density_trans
 

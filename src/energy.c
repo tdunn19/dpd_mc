@@ -225,7 +225,8 @@ double energy_c(Vector dr) {
 
   // Soft repulsive force
   if (r_ij < sys.r_c2) {
-    r_ij = sqrt(r_ij);
+    //r_ij = sqrt(r_ij);
+    r_ij = root(r_ij);
     E_ij = (1 - r_ij/sys.r_c) * (1 - r_ij/sys.r_c) / 2;
   } else {
     E_ij = 0;

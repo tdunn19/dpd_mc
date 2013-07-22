@@ -50,6 +50,7 @@ void    new_list(void);
 void    periodic_bc(Vector *);
 void    print_stats(void);
 double  ran3(void);
+double  root(double);
 void    sample(void);
 void    update_monitor(void);
 void    update_stats(void);

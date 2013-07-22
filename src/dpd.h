@@ -145,7 +145,7 @@ typedef struct parameter_type {
 extern Particle *part_dpd;
 extern Particle *part_mon;
 extern System sys;
-
+extern const double root_table[100001];
 
 /* Global functions */
 
@@ -185,6 +185,7 @@ extern void    periodic_bc_dr(Vector *);
 extern void    periodic_bc_r(Vector *);
 extern void    print_stats(void);
 extern double  ran3(void);
+extern double  root(double);
 extern void    sample(void);
 extern void    update_monitor(void);
 extern void    update_stats(void);
