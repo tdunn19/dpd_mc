@@ -353,9 +353,9 @@ void check_window() {
 
 int check_side(Vector r) {
   if (r.z > sys.length.z/2) {
-    return 0;
-  } else {
     return 1;
+  } else {
+    return 0;
   }
 }
 
@@ -406,7 +406,7 @@ void calc_pressure(void) {
       r_ij = vmag(dr);
 
       if (r_ij < sys.r_c) {
-        P.now += sys.a_ms*r_ij*(1-r_ij);
+        P.now += sys.a_ms[part_dpd[j].side]*r_ij*(1-r_ij);
       }
     }
   }
@@ -439,6 +439,6 @@ void calc_pressure(void) {
   }
 
   P.now /= 3*sys.volume;
-  // P.now += sys.density_s;
+  P.now += sys.density_s;
   // P.now += sys.density_s*sys.temp;
 }

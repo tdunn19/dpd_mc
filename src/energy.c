@@ -60,7 +60,7 @@ double calc_energy_dpd(int i) {
     dr = vdist(part_dpd[i].r, part_mon[j].r);
     E_ms += energy_c(dr);
   }
-  E_ms *= sys.a_ms;
+  E_ms *= sys.a_ms[part_dpd[i].side];
 
   return E_ss + E_ms + E_sw;
 }
@@ -91,7 +91,7 @@ double calc_energy_mon(int i) {
           dr = vdist(part_mon[i].r, part_dpd[j].r);
           if (j < sys.n_solvent) {
             // Monomer-solvent interaction
-            E_ms += energy_c(dr);
+            E_ms += sys.a_ms[part_dpd[j].side] * energy_c(dr);
           } else {
             // Monomer-wall interaction
             E_mw += energy_c(dr);
@@ -102,7 +102,6 @@ double calc_energy_mon(int i) {
       }
     }
   }
-  E_ms *= sys.a_ms;
   E_mw *= sys.a_sw;
 
   // Monomer-monomer interaction
@@ -154,9 +153,8 @@ void calc_energy_brute(void) {
 
     for (j = 0; j < sys.n_solvent; j++) {
         dr = vdist(part_mon[i].r, part_dpd[j].r);
-        E_ms += energy_c(dr);
+        E_ms += sys.a_ms[part_dpd[j].side] * energy_c(dr);
     }
-    E_ms *= sys.a_ms;
 
     for (j = sys.n_solvent; j < sys.n_dpd; j++) {
         dr = vdist(part_mon[i].r, part_dpd[j].r);
@@ -191,7 +189,7 @@ void calc_energy_brute(void) {
       dr = vdist(part_dpd[i].r, part_mon[j].r);
       E_ms += energy_c(dr);
     }
-    E_ms *= sys.a_ms;
+    E_ms *= sys.a_ms[part_dpd[i].side];
 
     part_dpd[i].E = E_ss + E_ms + E_sw;
   }

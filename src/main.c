@@ -68,7 +68,9 @@ main() {
 
   for (sys.step = 0; sys.step <= sys.n_steps; sys.step++) {
     monte_carlo();
-    if (sys.step % sys.freq_sample == 0) sample();
+    if (sys.step > sys.n_eq && sys.step % sys.freq_sample == 0) {
+      sample();
+    }
   }
 
   final_stats();

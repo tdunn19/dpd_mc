@@ -1,11 +1,10 @@
-20			n_mon
+30			n_mon
 0.5         bl_init
 
-10.0        length_x
-10.0        length_y
-25.0        length_z
-3           density_cis
-3			density_trans
+12.0        length_x
+12.0        length_y
+40.0       length_z
+1		   density_s
 
 3           density_w
 2           n_layers
@@ -15,20 +14,22 @@
 
 99			n_wins
 20          n_bins
-2			iQ_init
+1			iQ_init
 
 1.0         r_c
 0.2         dr_max_dpd
 0.1         dr_max_mon
 
 25.0	    a_mm
-15.0        a_ms
+15.0        a_ms_cis
+15.0        a_ms_trans
 25.0        a_ss
 9.01        a_sw
 
 1			calc_list
-10000000			n_steps
+400000000	n_steps
+0.25        perc_eq
 0.5         mc_ratio(1=monomers_only,0=dpd_only)
 100         freq_sample
 
-1395193044		iseed
+1395193044	iseed

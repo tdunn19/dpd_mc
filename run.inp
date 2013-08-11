@@ -1,8 +1,9 @@
-n_mon         10
-density_cis   1
-density_trans 1
+n_mon         20
+density_s     3
 n_wins        99
-n_steps       100000
+a_ms_cis      25
+a_ms_trans    25
+n_steps       400000000
 calc_list     1
 
 runs_per_job  1

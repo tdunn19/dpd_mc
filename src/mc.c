@@ -111,7 +111,7 @@ void move_solvent(int i) {
     for (j = 0; j < sys.n_mon; j++) {
       dr = vdist(part_dpd[i].r, part_mon[j].r);
       dro = vdist(part_dpd[i].ro, part_mon[j].r);
-      dE = sys.a_ms * (energy_c(dr) - energy_c(dro));
+      dE = sys.a_ms[part_dpd[i].side] * (energy_c(dr) - energy_c(dro));
 
       part_dpd[i].E += dE;
       part_mon[j].E += dE;
@@ -279,7 +279,7 @@ void move_solvent(int i) {
     for (j = 0; j < sys.n_mon; j++) {
       dr = vdist(part_dpd[i].r, part_mon[j].r);
       dro = vdist(part_dpd[i].ro, part_mon[j].r);
-      dE = sys.a_ms * (energy_c(dr) - energy_c(dro));
+      dE = sys.a_ms[part_dpd[j].side] * (energy_c(dr) - energy_c(dro));
 
       part_dpd[i].E += dE;
       part_mon[j].E += dE;
@@ -374,7 +374,7 @@ void move_monomer(int i) {
 
             if (j < sys.n_solvent) {
               // Monomer-solvent interaction
-              dE *= sys.a_ms;
+              dE *= sys.a_ms[part_dpd[j].side];
             } else {
               // Monomer-wall interaction
               dE *= sys.a_sw;
@@ -420,7 +420,7 @@ void move_monomer(int i) {
 
               if (j < sys.n_solvent) {
                 // Monomer-solvent interaction
-                dE *= sys.a_ms;
+                dE *= sys.a_ms[part_dpd[j].side];
               } else {
                 // Monomer-wall interaction
                 dE *= sys.a_sw;
@@ -455,7 +455,7 @@ void move_monomer(int i) {
 
               if (j < sys.n_solvent) {
                 // Monomer-solvent interaction
-                dE *= sys.a_ms;
+                dE *= sys.a_ms[part_dpd[j].side];
               } else {
                 // Monomer-wall interaction
                 dE *= sys.a_sw;
@@ -490,7 +490,7 @@ void move_monomer(int i) {
 
               if (j < sys.n_solvent) {
                 // Monomer-solvent interaction
-                dE *= sys.a_ms;
+                dE *= sys.a_ms[part_dpd[j].side];
               } else {
                 // Monomer-wall interaction
                 dE *= sys.a_sw;
@@ -531,7 +531,7 @@ void move_monomer(int i) {
     for (j = 0; j < sys.n_solvent; j++) {
       dr = vdist(part_mon[i].r, part_dpd[j].r);
       dro = vdist(part_mon[i].ro, part_dpd[j].r);
-      dE = sys.a_ms * (energy_c(dr) - energy_c(dro));
+      dE = sys.a_ms[part_dpd[j].side] * (energy_c(dr) - energy_c(dro));
 
       part_mon[i].E += dE;
       part_dpd[j].E += dE;

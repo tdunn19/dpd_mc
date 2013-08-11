@@ -27,6 +27,7 @@ void init_param(void) {
   sys.n_accept_solvent = 0;
   sys.n_attempt_mon = 0;
   sys.n_attempt_solvent = 0;
+  sys.n_eq = sys.n_steps * sys.perc_eq;
 
   // System flags
   sys.bond_break = 0;
@@ -95,14 +96,10 @@ void init_param(void) {
   sys.volume -= sys.wall_volume + sys.pore_volume;
   sys.volume_cis = sys.length.x * sys.length.y * sys.length.z / 2;
   sys.volume_trans = sys.volume_cis - sys.wall_volume - sys.pore_volume;
-  // sys.n_solvent = (int) (sys.density_s * sys.volume);
-  sys.n_solvent_cis = (int) (sys.density_cis * sys.volume_cis);
-  sys.n_solvent_trans = (int) (sys.density_trans * sys.volume_trans);
-  sys.n_solvent = sys.n_solvent_cis + sys.n_solvent_trans;
-  // Debugging
-  printf("sys.volume = %lf\n", sys.volume);
-  printf("sys.volume_cis = %lf\n", sys.volume_cis);
-  printf("sys.volume_trans = %lf\n", sys.volume_trans);
+  sys.n_solvent = (int) (sys.density_s * sys.volume);
+  // sys.n_solvent_cis = (int) (sys.density_cis * sys.volume_cis);
+  // sys.n_solvent_trans = (int) (sys.density_trans * sys.volume_trans);
+  // sys.n_solvent = sys.n_solvent_cis + sys.n_solvent_trans;
 
   // Total dpd particles
   sys.n_dpd = sys.n_solvent + sys.n_pore + sys.n_wall;
@@ -219,10 +216,9 @@ void init_polymer(void) {
 void init_solvent(void) {
   int i, j;
   FILE *fp;
-  printf("Beginning cis solvent\n\n");
 
-  for (i = 0; i < sys.n_solvent_cis; i++) {
-    // Repeat until the particle is outside the wall/pore on the cis side
+  for (i = 0; i < sys.n_solvent; i++) {
+    // Repeat until the particle is outside the wall and pore
     do {
       part_dpd[i].r.x = sys.length.x*ran3();
       part_dpd[i].r.y = sys.length.y*ran3();
@@ -230,32 +226,14 @@ void init_solvent(void) {
 
       // Check for wall overlap
       check_wall(part_dpd[i].r);
-    } while (sys.wall_overlap || check_side(part_dpd[i].r) || check_pore(part_dpd[i].r));
-    printf("dpd[%d].r=%lf,%lf,%lf\n",
-      i,part_dpd[i].r.x,part_dpd[i].r.y,part_dpd[i].r.z);
+    } while (sys.wall_overlap || check_pore(part_dpd[i].r));
+
+    part_dpd[i].side = check_side(part_dpd[i].r);
 
     part_dpd[i].ro.x = part_dpd[i].r.x;
     part_dpd[i].ro.y = part_dpd[i].r.y;
     part_dpd[i].ro.z = part_dpd[i].r.z;
-  }
 
-  printf("Beginning trans solvent\n\n");
-  for (j = i; j < sys.n_solvent; j++) {
-    // Repeat until the particle is outside the wall/pore on the trans side
-    do {
-      part_dpd[j].r.x = sys.length.x*ran3();
-      part_dpd[j].r.y = sys.length.y*ran3();
-      part_dpd[j].r.z = sys.length.z*ran3();
-
-      // Check for wall overlap
-      check_wall(part_dpd[j].r);
-    } while (sys.wall_overlap || !check_side(part_dpd[j].r) || check_pore(part_dpd[j].r));
-    printf("dpd[%d].r=%lf,%lf,%lf\n",
-      j,part_dpd[j].r.x,part_dpd[j].r.y,part_dpd[j].r.z);
-
-    part_dpd[j].ro.x = part_dpd[j].r.x;
-    part_dpd[j].ro.y = part_dpd[j].r.y;
-    part_dpd[j].ro.z = part_dpd[j].r.z;
   }
 }
 
